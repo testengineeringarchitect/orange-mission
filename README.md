@@ -73,6 +73,53 @@ These real-life Jesus moments will guide us more than specs or trends ever could
 
 ## 🔥 Let’s Build the Tabernacle of Tech for Jesus
 
+---
+
+📜 Privacy & Security Principles
+
+OrangeOS exists to glorify Jesus by equipping believers with technology that uplifts, protects, and never exploits. We believe privacy is a form of stewardship and dignity. Every user deserves security, freedom from surveillance, and full control over their data.
+
+OrangeOS will never track, exploit, or harvest user data. Period.
+
+🔐 Our Commitments:
+
+No Data Harvesting
+We do not and will not collect, sell, or track user behavior, app usage, contacts, or personal content. Your device belongs to you — not to advertisers, not to us.
+
+No Location Tracking by Default
+GPS and location features are off unless you enable them. We will never collect or store your location history.
+
+Zero Fingerprinting
+We block unique device ID exposure and fingerprinting techniques that allow invisible tracking. Apps cannot share hidden identifiers.
+
+No Hidden Analytics or Third‑Party SDKs
+No background beacons. No forced integrations. No third-party ad SDKs. Apps in the OrangeStore must meet our transparency standards.
+
+Local‑First Data Model
+Your Bible notes, studies, media, and preferences are stored locally and encrypted. Syncing is optional and always under your control.
+
+Open Source Transparency
+OrangeOS and its core apps are open source and auditable. The code is viewable, forkable, and testable — because truth should be visible.
+
+Permission Clarity
+All app permissions are ask-first. Microphone, camera, files, location — all must be granted consciously with plain-language prompts.
+
+Security Updates & Network Privacy
+Devices will receive security updates. Support for DNS over HTTPS, VPN integration, and TOR compatibility are part of our roadmap.
+
+🕊️ Rooted in the Word:
+
+We do this not just to be private — but to reflect Jesus. He called us to walk in the light, not in hidden darkness.
+
+“Let your ‘Yes’ be ‘Yes,’ and your ‘No,’ ‘No.’ For whatever is more than these is from the evil one.” – Matthew 5:37
+“The truth shall make you free.” – John 8:32
+
+We do not serve mammon. We serve Jesus. OrangeOS will never be built on deception, surveillance, or exploitation — only on trust, light, and truth.
+
+✝️ Summary
+
+OrangeOS is built by believers, for believers — and for everyone hungry for truth, freedom, and life in Jesus. This isn’t just a privacy phone. It’s a kingdom platform. And it starts with trust.
+
 **Orange is not ours — it belongs to the King.**  
 He is the CEO.  
 We are just the pencils.
