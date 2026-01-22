@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OrangeOS Home</title>
+  <style>
+    :root {
+      --bg: #050608;
+      --card-bg: #111319;
+      --accent: #FFA500;
+      --accent-soft: #FFBF47;
+      --text-main: #f5f5f5;
+      --text-muted: #a0a4b8;
+      --border-soft: #242735;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1b2030 0, #050608 50%, #020307 100%);
+      color: var(--text-main);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1100px;
+      padding: 32px 24px 40px;
+      border-radius: 24px;
+      background: rgba(5, 6, 10, 0.92);
+      box-shadow:
+        0 30px 80px rgba(0,0,0,0.8),
+        0 0 0 1px rgba(255,255,255,0.03);
+      backdrop-filter: blur(22px);
+    }
+
+    .shell-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.4rem;
+      font-weight: 650;
+    }
+
+    .brand-main span.logo {
+      font-size: 1.8rem;
+    }
+
+    .brand-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .shell-time {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(145deg, #10121a, #090a0f);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      border: 1px solid var(--border-soft);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition:
+        transform 0.15s ease-out,
+        box-shadow 0.15s ease-out,
+        border-color 0.15s ease-out,
+        background 0.15s ease-out;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+      border-color: rgba(255,165,0,0.4);
+      background: linear-gradient(145deg, #151826, #090a0f);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle at top left, rgba(255,165,0,0.18), transparent 55%);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+      pointer-events: none;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .card-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .card-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,165,0,0.07);
+      color: var(--accent-soft);
+      border: 1px solid rgba(255,165,0,0.18);
+    }
+
+    .card-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .footer {
+      margin-top: 26px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer span.highlight {
+      color: var(--accent-soft);
+    }
+
+    @media (max-width: 700px) {
+      .shell {
+        padding: 20px 16px 26px;
+        border-radius: 0;
+        height: 100%;
+      }
+
+      body {
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-header">
+      <div class="brand">
+        <div class="brand-main">
+          <span class="logo">🍊</span>
+          <span>OrangeOS</span>
+        </div>
+        <div class="brand-sub">
+          Devices set apart to keep you close to Jesus, every single day.
+        </div>
+      </div>
+      <div class="shell-time" id="shellTime"></div>
+    </div>
+
+    <div class="grid">
+      <!-- Daily Devotion app -->
+      <div class="card" onclick="openApp('bible.html')">
+        <div class="card-icon">📖</div>
+        <div class="card-title">Daily Devotion</div>
+        <div class="card-sub">
+          Start your day in the Word — seasonal background, verse of the day,
+          and Deep Dive study with audio + notes.
+        </div>
+        <div class="card-pill">
+          <span class="card-pill-dot"></span>
+          <span>Core System App</span>
+        </div>
+      </div>
+
+      <!-- Future: Prayer app -->
+      <div class="card" onclick="comingSoon('Prayer Journal')">
+        <div class="card-icon">🙏</div>
+        <div class="card-title">Prayer & Gratitude</div>
+        <div class="card-sub">
+          Track answered prayers, daily gratitude, and requests for others.
+        </div>
+        <div class="card-pill">
+          <span class="card-pill-dot"></span>
+          <span>Planned for v0.2</span>
+        </div>
+      </div>
+
+      <!-- Future: Community / Church -->
+      <div class="card" onclick="comingSoon('Community & Teaching')">
+        <div class="card-icon">🤝</div>
+        <div class="card-title">Community & Teaching</div>
+        <div class="card-sub">
+          Curated messages from trusted teachers to go deeper in the Gospel.
+        </div>
+        <div class="card-pill">
+          <span class="card-pill-dot"></span>
+          <span>Future Module</span>
+        </div>
+      </div>
+
+      <!-- Future: Settings / Privacy -->
+      <div class="card" onclick="comingSoon('Settings & Privacy')">
+        <div class="card-icon">🛡️</div>
+        <div class="card-title">Settings & Privacy</div>
+        <div class="card-sub">
+          Control-device behavior, offline mode, and Christ-centered privacy defaults.
+        </div>
+        <div class="card-pill">
+          <span class="card-pill-dot"></span>
+          <span>Security First</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>
+        OrangeOS <span class="highlight">Seed</span> — Early prototype shell running on the web.
+      </div>
+      <div>
+        Mission: <span class="highlight">Scripture first, no data harvesting, Jesus at the center.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openApp(path) {
+      window.location.href = path;
+    }
+
+    function comingSoon(name) {
+      alert(name + " is part of the OrangeOS roadmap. For now, Daily Devotion is our first live app.");
+    }
+
+    function updateTime() {
+      const el = document.getElementById('shellTime');
+      const now = new Date();
+      const opts = { weekday: 'short', hour: '2-digit', minute: '2-digit' };
+      el.textContent = now.toLocaleString(undefined, opts);
+    }
+
+    updateTime();
+    setInterval(updateTime, 60 * 1000);
+  </script>
+</body>
+</html>

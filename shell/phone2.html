@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OrangeOS Phone Prototype</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #202436 0, #06070c 55%, #020308 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5f5f5;
+    }
+
+    /* Phone frame */
+    .phone {
+      position: relative;
+      width: 400px;
+      max-width: 95vw;
+      height: 820px;
+      max-height: 95vh;
+      border-radius: 36px;
+      background: #000;
+      box-shadow:
+        0 28px 70px rgba(0,0,0,0.85),
+        0 0 0 4px rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 36px;
+      border: 3px solid rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+
+    /* Notch */
+    .notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 32px;
+      background: #050508;
+      border-radius: 18px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.03);
+      z-index: 20;
+    }
+
+    /* Shared screen styling with fade / zoom */
+    .screen {
+      position: absolute;
+      inset: 0;
+      padding-top: 48px; /* space for notch */
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+      pointer-events: none;
+      transition:
+        opacity 0.35s cubic-bezier(0.23, 0.92, 0.25, 1),
+        transform 0.35s cubic-bezier(0.23, 0.92, 0.25, 1);
+      z-index: 0;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Lock screen */
+    .lock-frame {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .swipe-area {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 120px;
+      z-index: 9;
+      cursor: pointer;
+    }
+
+    .home-indicator {
+      width: 120px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.85);
+      margin: 8px auto 0;
+    }
+
+    /* Home screen */
+    #homeScreen {
+      background: linear-gradient(180deg, #f8c76b 0%, #f09e6d 25%, #f4b58e 40%, #72b6e6 100%);
+      background-size: cover;
+    }
+
+    .home-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 16px 10px;
+      color: #fff;
+    }
+
+    .home-status {
+      text-align: center;
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .home-time {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .home-date {
+      margin-top: 2px;
+      text-align: center;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .home-reminder {
+      margin: 16px auto 12px;
+      width: 90%;
+      max-width: 320px;
+      padding: 6px 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.18);
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+
+    .rem-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rem-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #6df2a4;
+    }
+
+    /* Icon grid */
+    .icon-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-row-gap: 18px;
+      grid-column-gap: 4px;
+      justify-items: center;
+    }
+
+    .app-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 8px 15px rgba(0,0,0,0.35),
+        0 0 0 1px rgba(255,255,255,0.6);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+    }
+
+    .app-icon span.emoji {
+      font-size: 1.9rem;
+    }
+
+    .app-label {
+      margin-top: 4px;
+      font-size: 0.72rem;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .app-icon.orange {
+      background: radial-gradient(circle at top, #ffe5a8 0, #ffb347 45%, #f38b22 85%);
+    }
+
+    .app-icon.green {
+      background: radial-gradient(circle at top, #c8ffd2 0, #55d87a 50%, #189b40 90%);
+    }
+
+    .app-icon.blue {
+      background: radial-gradient(circle at top, #d2e7ff 0, #529dff 45%, #1a65c6 90%);
+    }
+
+    .app-icon.red {
+      background: radial-gradient(circle at top, #ffd3d3 0, #ff7373 45%, #d02121 90%);
+    }
+
+    .app-icon.purple {
+      background: radial-gradient(circle at top, #fbd9ff 0, #d881ff 45%, #9140c7 90%);
+    }
+
+    .app-icon.gray {
+      background: radial-gradient(circle at top, #f3f3f3 0, #d0d0d0 45%, #9d9d9d 90%);
+    }
+
+    .app-icon:active {
+      transform: scale(0.94);
+      box-shadow:
+        0 3px 6px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.7);
+    }
+
+    /* Dock */
+    .dock {
+      margin-top: auto;
+      padding: 8px 12px 10px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 22px;
+      display: flex;
+      justify-content: space-around;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .dock .app-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      box-shadow:
+        0 6px 12px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.7);
+    }
+
+    .dock .app-label {
+      margin-top: 2px;
+      font-size: 0.68rem;
+    }
+
+    .footer-text {
+      margin-top: 4px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: rgba(0,0,0,0.7);
+      text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+    }
+
+    @media (max-height: 750px) {
+      .phone {
+        height: 740px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- LOCK SCREEN: Devotion -->
+    <div id="lockScreen" class="screen active">
+      <!-- point to the new apps/devotion path -->
+      <iframe src="../apps/devotion/bible.html" class="lock-frame"></iframe>
+
+      <div class="swipe-area" id="swipeArea"></div>
+
+      <div class="lock-overlay">
+        <div>Swipe up to unlock</div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div id="homeScreen" class="screen">
+      <div class="home-inner">
+        <div class="home-status">OrangeOS · Christ-centered prototype</div>
+        <div class="home-time" id="homeTime">9:09</div>
+        <div class="home-date" id="homeDate">Tuesday, April 23</div>
+
+        <div class="home-reminder">
+          <div class="rem-left">
+            <div class="rem-dot"></div>
+            <span>Evening Prayer · 7:00 PM</span>
+          </div>
+          <span>🔔</span>
+        </div>
+
+        <!-- OrangeOS app grid + regular apps -->
+        <div class="icon-grid">
+          <!-- Daily Devotion -->
+          <div onclick="openDevotion()" style="text-align:center;">
+            <div class="app-icon orange">
+              <span class="emoji">📖</span>
+            </div>
+            <div class="app-label">Daily Devotion</div>
+          </div>
+
+          <!-- Prayer -->
+          <div onclick="showPrototypeNote('Prayer & Gratitude')" style="text-align:center;">
+            <div class="app-icon blue">
+              <span class="emoji">🙏</span>
+            </div>
+            <div class="app-label">Prayer</div>
+          </div>
+
+          <!-- Community -->
+          <div onclick="showPrototypeNote('Community & Teaching')" style="text-align:center;">
+            <div class="app-icon green">
+              <span class="emoji">🤝</span>
+            </div>
+            <div class="app-label">Community</div>
+          </div>
+
+          <!-- Settings & Privacy -->
+          <div onclick="showPrototypeNote('Settings & Privacy')" style="text-align:center;">
+            <div class="app-icon gray">
+              <span class="emoji">🛡️</span>
+            </div>
+            <div class="app-label">Settings</div>
+          </div>
+
+          <!-- Gmail -->
+          <div onclick="showPrototypeNote('Gmail')" style="text-align:center;">
+            <div class="app-icon red">
+              <span class="emoji">✉️</span>
+            </div>
+            <div class="app-label">Gmail</div>
+          </div>
+
+          <!-- Chrome -->
+          <div onclick="showPrototypeNote('Chrome')" style="text-align:center;">
+            <div class="app-icon blue">
+              <span class="emoji">🌐</span>
+            </div>
+            <div class="app-label">Chrome</div>
+          </div>
+
+          <!-- FaceMeets -->
+          <div onclick="showPrototypeNote('FaceMeets')" style="text-align:center;">
+            <div class="app-icon green">
+              <span class="emoji">😀</span>
+            </div>
+            <div class="app-label">FaceMeets</div>
+          </div>
+
+          <!-- Camera -->
+          <div onclick="showPrototypeNote('Camera')" style="text-align:center;">
+            <div class="app-icon purple">
+              <span class="emoji">📷</span>
+            </div>
+            <div class="app-label">Camera</div>
+          </div>
+        </div>
+
+        <!-- Dock -->
+        <div class="dock">
+          <div onclick="showPrototypeNote('Phone')" style="text-align:center;">
+            <div class="app-icon green">
+              <span class="emoji">📞</span>
+            </div>
+            <div class="app-label">Phone</div>
+          </div>
+
+          <div onclick="showPrototypeNote('Messages')" style="text-align:center;">
+            <div class="app-icon blue">
+              <span class="emoji">💬</span>
+            </div>
+            <div class="app-label">Messages</div>
+          </div>
+
+          <div onclick="showPrototypeNote('Calendar')" style="text-align:center;">
+            <div class="app-icon red">
+              <span class="emoji">📅</span>
+            </div>
+            <div class="app-label">Calendar</div>
+          </div>
+
+          <div onclick="showPrototypeNote('Clock & Reminders')" style="text-align:center;">
+            <div class="app-icon gray">
+              <span class="emoji">⏰</span>
+            </div>
+            <div class="app-label">Clock</div>
+          </div>
+        </div>
+
+        <div class="footer-text">
+          OrangeOS — Rooted in Scripture, built for eternity. (Prototype view)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const lockScreen = document.getElementById('lockScreen');
+    const homeScreen = document.getElementById('homeScreen');
+    const swipeArea = document.getElementById('swipeArea');
+
+    function unlockToHome() {
+      lockScreen.classList.remove('active');
+      homeScreen.classList.add('active');
+    }
+
+    function openDevotion() {
+      homeScreen.classList.remove('active');
+      lockScreen.classList.add('active');
+    }
+
+    swipeArea.addEventListener('click', unlockToHome);
+
+    // basic swipe-up gesture
+    let startY = null;
+    swipeArea.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+    });
+
+    swipeArea.addEventListener('touchend', (e) => {
+      if (startY == null) return;
+      const endY = e.changedTouches[0].clientY;
+      if (startY > endY + 30) {
+        unlockToHome();
+      }
+      startY = null;
+    });
+
+    function showPrototypeNote(name) {
+      alert(name + " is part of the OrangeOS concept. In this prototype only Daily Devotion is fully wired.");
+    }
+
+    // Time / date display on home
+    function updateTime() {
+      const tEl = document.getElementById('homeTime');
+      const dEl = document.getElementById('homeDate');
+      const now = new Date();
+
+      const timeOpts = { hour: 'numeric', minute: '2-digit' };
+      tEl.textContent = now.toLocaleTimeString(undefined, timeOpts);
+
+      const dateOpts = { weekday: 'long', month: 'long', day: 'numeric' };
+      dEl.textContent = now.toLocaleDateString(undefined, dateOpts);
+    }
+
+    updateTime();
+    setInterval(updateTime, 60 * 1000);
+  </script>
+</body>
+</html>

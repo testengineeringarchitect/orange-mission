@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OrangeOS Phone Prototype</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #202436 0, #06070c 55%, #020308 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5f5f5;
+    }
+
+    /* Phone frame */
+    .phone {
+      position: relative;
+      width: 400px;
+      max-width: 95vw;
+      height: 820px;
+      max-height: 95vh;
+      border-radius: 36px;
+      background: #000;
+      box-shadow:
+        0 28px 70px rgba(0,0,0,0.85),
+        0 0 0 4px rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 36px;
+      border: 3px solid rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+
+    /* Notch */
+    .notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 32px;
+      background: #050508;
+      border-radius: 18px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.03);
+      z-index: 20;
+    }
+
+    /* Shared screen styling with fade / zoom */
+    .screen {
+      position: absolute;
+      inset: 0;
+      padding-top: 48px; /* space for notch */
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+      pointer-events: none;
+      transition:
+        opacity 0.35s cubic-bezier(0.23, 0.92, 0.25, 1),
+        transform 0.35s cubic-bezier(0.23, 0.92, 0.25, 1);
+      z-index: 0;
+    }
+    .screen.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Devotion lock screen */
+    .lock-frame {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Image lock screen */
+    #imageLockScreen {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .img-lock-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+    .img-lock-time {
+      font-size: 3.4rem;
+      font-weight: 600;
+    }
+    .img-lock-date {
+      margin-top: 4px;
+      font-size: 0.95rem;
+    }
+    .img-lock-caption {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    /* Shared lock overlay + swipe */
+    .lock-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .swipe-area {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 120px;
+      z-index: 9;
+      cursor: pointer;
+    }
+    .home-indicator {
+      width: 120px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.85);
+      margin: 8px auto 0;
+    }
+
+    /* Home screen */
+    #homeScreen {
+      background: linear-gradient(180deg, #f8c76b 0%, #f09e6d 25%, #f4b58e 40%, #72b6e6 100%);
+      background-size: cover;
+    }
+    .home-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 16px 10px;
+      color: #fff;
+    }
+    .home-status {
+      text-align: center;
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+    .home-time {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .home-date {
+      margin-top: 2px;
+      text-align: center;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+    .home-reminder {
+      margin: 16px auto 12px;
+      width: 90%;
+      max-width: 320px;
+      padding: 6px 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.18);
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+    .rem-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rem-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #6df2a4;
+    }
+
+    /* Icon grid */
+    .icon-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-row-gap: 18px;
+      grid-column-gap: 4px;
+      justify-items: center;
+    }
+
+    /* iOS-style app icons */
+    .app-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow:
+        0 10px 18px rgba(0,0,0,0.45);
+      transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+    }
+    .app-icon::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.55) 0%,
+        rgba(255,255,255,0.20) 40%,
+        transparent 50%,
+        rgba(0,0,0,0.25) 100%
+      );
+      opacity: 0.8;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+    .app-icon span.emoji {
+      position: relative;
+      z-index: 1;
+      font-size: 1.85rem;
+    }
+
+    .app-label {
+      margin-top: 4px;
+      font-size: 0.72rem;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    /* Color themes (keep our OrangeOS spin) */
+    .app-icon.orange {
+      background: linear-gradient(180deg, #ffe8b8 0%, #ffb347 45%, #f38b22 100%);
+    }
+    .app-icon.green {
+      background: linear-gradient(180deg, #d4ffd8 0%, #55d87a 45%, #189b40 100%);
+    }
+    .app-icon.blue {
+      background: linear-gradient(180deg, #d8ebff 0%, #529dff 45%, #1a65c6 100%);
+    }
+    .app-icon.red {
+      background: linear-gradient(180deg, #ffd4d4 0%, #ff7373 45%, #d02121 100%);
+    }
+    .app-icon.purple {
+      background: linear-gradient(180deg, #fbd9ff 0%, #d881ff 45%, #9140c7 100%);
+    }
+    .app-icon.gray {
+      background: linear-gradient(180deg, #f4f4f4 0%, #d0d0d0 45%, #9d9d9d 100%);
+    }
+
+    .app-icon:active {
+      transform: scale(0.94);
+      box-shadow:
+        0 3px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Dock */
+    .dock {
+      margin-top: auto;
+      padding: 8px 12px 10px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 22px;
+      display: flex;
+      justify-content: space-around;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+    .dock .app-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      box-shadow:
+        0 6px 14px rgba(0,0,0,0.5);
+    }
+    .dock .app-label {
+      margin-top: 2px;
+      font-size: 0.68rem;
+    }
+
+    .footer-text {
+      margin-top: 4px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: rgba(0,0,0,0.7);
+      text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+    }
+
+    /* Notes screen */
+    #notesScreen {
+      background: #07080d;
+    }
+    .notes-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 14px 12px;
+      color: #f5f5f5;
+    }
+    .notes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .notes-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .notes-back {
+      font-size: 0.85rem;
+      color: #ffd166;
+      cursor: pointer;
+    }
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-top: 8px;
+    }
+    .note-card {
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      background: #11131c;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+      font-size: 0.82rem;
+    }
+    .note-meta {
+      font-size: 0.78rem;
+      color: #c4c7d4;
+      margin-bottom: 4px;
+    }
+    .note-text {
+      white-space: pre-wrap;
+      color: #f8f8ff;
+    }
+    .notes-empty {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #9ca0b5;
+    }
+
+    @media (max-height: 750px) {
+      .phone { height: 740px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- Devotion lock screen (iframe) -->
+    <div id="devotionLockScreen" class="screen">
+      <iframe src="../apps/devotion/bible.html" class="lock-frame"></iframe>
+    </div>
+
+    <!-- Image lock screen (seasonal) -->
+    <div id="imageLockScreen" class="screen">
+      <div class="img-lock-inner">
+        <div class="img-lock-time" id="imgLockTime">9:09</div>
+        <div class="img-lock-date" id="imgLockDate">Tuesday, April 23</div>
+        <div class="img-lock-caption">OrangeOS — Walking with Jesus through every season.</div>
+      </div>
+    </div>
+
+    <!-- Shared swipe + overlay for both lock screens -->
+    <div class="swipe-area" id="swipeArea"></div>
+    <div class="lock-overlay">
+      <div>Swipe up to unlock</div>
+      <div class="home-indicator"></div>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div id="homeScreen" class="screen">
+      <div class="home-inner">
+        <div class="home-status">OrangeOS · Christ-centered prototype</div>
+        <div class="home-time" id="homeTime">9:09</div>
+        <div class="home-date" id="homeDate">Tuesday, April 23</div>
+
+        <div class="home-reminder">
+          <div class="rem-left">
+            <div class="rem-dot"></div>
+            <span>Evening Prayer · 7:00 PM</span>
+          </div>
+          <span>🔔</span>
+        </div>
+
+        <!-- Grid of apps (including Notes) -->
+        <div class="icon-grid">
+          <!-- Daily Devotion -->
+          <div onclick="openDevotion()" style="text-align:center;">
+            <div class="app-icon orange">
+              <span class="emoji">📖</span>
+            </div>
+            <div class="app-label">Daily Devotion</div>
+          </div>
+
+          <!-- Prayer -->
+          <div onclick="showPrototypeNote('Prayer & Gratitude')" style="text-align:center;">
+            <div class="app-icon blue">
+              <span class="emoji">🙏</span>
+            </div>
+            <div class="app-label">Prayer</div>
+          </div>
+
+          <!-- Community -->
+          <div onclick="showPrototypeNote('Community & Teaching')" style="text-align:center;">
+            <div class="app-icon green">
+              <span class="emoji">🤝</span>
+            </div>
+            <div class="app-label">Community</div>
+          </div>
+
+          <!-- Settings & Privacy -->
+          <div onclick="showPrototypeNote('Settings & Privacy')" style="text-align:center;">
+            <div class="app-icon gray">
+              <span class="emoji">🛡️</span>
+            </div>
+            <div class="app-label">Settings</div>
+          </div>
+
+          <!-- Gmail -->
+          <div onclick="showPrototypeNote('Gmail')" style="text-align:center;">
+            <div class="app-icon red">
+              <span class="emoji">✉️</span>
+            </div>
+            <div class="app-label">Gmail</div>
+          </div>
+
+          <!-- Chrome -->
+          <div onclick="showPrototypeNote('Chrome')" style="text-align:center;">
+            <div class="app-icon blue">
+              <span class="emoji">🌐</span>
+            </div>
+            <div class="app-label">Chrome</div>
+          </div>
+
+          <!-- FaceMeets -->
+          <div onclick="showPrototypeNote('FaceMeets')" style="text-align:center;">
+            <div class="app-icon green">
+              <span class="emoji">😀</span>
+            </div>
+            <div class="app-label">FaceMeets</div>
+          </div>
+
+          <!-- Camera -->
+          <div onclick="showPrototypeNote('Camera')" style="text-align:center;">
+            <div class="app-icon purple">
+              <span class="emoji">📷</span>
+            </div>
+            <div class="app-label">Camera</div>
+          </div>
+
+          <!-- Notes -->
+          <div onclick="openNotes()" style="text-align:center;">
+            <div class="app-icon orange">
+              <span class="emoji">📝</span>
+            </div>
+            <div class="app-label">Notes</div>
+          </div>
+        </div>
+
+        <!-- Dock -->
+        <div class="dock">
+          <div onclick="showPrototypeNote('Phone')" style="text-align:center;">
+            <div class="app-icon green">
+              <span class="emoji">📞</span>
+            </div>
+            <div class="app-label">Phone</div>
+          </div>
+
+          <div onclick="showPrototypeNote('Messages')" style="text-align:center;">
+            <div class="app-icon blue">
+              <span class="emoji">💬</span>
+            </div>
+            <div class="app-label">Messages</div>
+          </div>
+
+          <div onclick="showPrototypeNote('Calendar')" style="text-align:center;">
+            <div class="app-icon red">
+              <span class="emoji">📅</span>
+            </div>
+            <div class="app-label">Calendar</div>
+          </div>
+
+          <div onclick="showPrototypeNote('Clock & Reminders')" style="text-align:center;">
+            <div class="app-icon gray">
+              <span class="emoji">⏰</span>
+            </div>
+            <div class="app-label">Clock</div>
+          </div>
+        </div>
+
+        <div class="footer-text">
+          OrangeOS — Rooted in Scripture, built for eternity. (Prototype view)
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES SCREEN -->
+    <div id="notesScreen" class="screen">
+      <div class="notes-inner">
+        <div class="notes-header">
+          <div class="notes-title">Study Notes</div>
+          <div class="notes-back" onclick="backToHome()">← Home</div>
+        </div>
+        <div id="notesList" class="notes-list">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Screens
+    const devotionLockScreen = document.getElementById('devotionLockScreen');
+    const imageLockScreen = document.getElementById('imageLockScreen');
+    const homeScreen = document.getElementById('homeScreen');
+    const notesScreen = document.getElementById('notesScreen');
+    const swipeArea = document.getElementById('swipeArea');
+
+    const LAST_UNLOCK_KEY = 'orangeos:lastUnlock';
+    const SEVEN_HOURS_MS = 7 * 60 * 60 * 1000;
+
+    let currentLock = null;
+
+    function setLockScreen(el) {
+      [devotionLockScreen, imageLockScreen, homeScreen, notesScreen]
+        .forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+      currentLock = el;
+    }
+
+    function unlockToHome() {
+      if (currentLock) currentLock.classList.remove('active');
+      homeScreen.classList.add('active');
+      currentLock = null;
+      localStorage.setItem(LAST_UNLOCK_KEY, Date.now().toString());
+    }
+
+    function openDevotion() {
+      [homeScreen, notesScreen].forEach(s => s.classList.remove('active'));
+      setLockScreen(devotionLockScreen);
+    }
+
+    function openNotes() {
+      [devotionLockScreen, imageLockScreen, homeScreen].forEach(s => s.classList.remove('active'));
+      notesScreen.classList.add('active');
+      renderNotes();
+    }
+
+    function backToHome() {
+      notesScreen.classList.remove('active');
+      homeScreen.classList.add('active');
+    }
+
+    swipeArea.addEventListener('click', unlockToHome);
+
+    // Simple swipe up for touch
+    let startY = null;
+    swipeArea.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+    });
+    swipeArea.addEventListener('touchend', (e) => {
+      if (startY == null) return;
+      const endY = e.changedTouches[0].clientY;
+      if (startY > endY + 30) unlockToHome();
+      startY = null;
+    });
+
+    function showPrototypeNote(name) {
+      alert(name + " is part of the OrangeOS concept. In this prototype only Daily Devotion and Notes are wired.");
+    }
+
+    // Time / date display (home + image lock)
+    function updateTime() {
+      const now = new Date();
+
+      const tEl = document.getElementById('homeTime');
+      const dEl = document.getElementById('homeDate');
+      if (tEl && dEl) {
+        const timeOpts = { hour: 'numeric', minute: '2-digit' };
+        const dateOpts = { weekday: 'long', month: 'long', day: 'numeric' };
+        tEl.textContent = now.toLocaleTimeString(undefined, timeOpts);
+        dEl.textContent = now.toLocaleDateString(undefined, dateOpts);
+      }
+
+      const lt = document.getElementById('imgLockTime');
+      const ld = document.getElementById('imgLockDate');
+      if (lt && ld) {
+        const timeOpts = { hour: 'numeric', minute: '2-digit' };
+        const dateOpts = { weekday: 'long', month: 'long', day: 'numeric' };
+        lt.textContent = now.toLocaleTimeString(undefined, timeOpts);
+        ld.textContent = now.toLocaleDateString(undefined, dateOpts);
+      }
+    }
+
+    // seasonal lock image for now
+    imageLockScreen.style.backgroundImage = "url('../apps/devotion/images/winter.jpg')";
+
+    updateTime();
+    setInterval(updateTime, 60 * 1000);
+
+    // Decide which lock screen to show at startup based on last unlock time
+    function decideInitialScreen() {
+      const raw = localStorage.getItem(LAST_UNLOCK_KEY);
+      const now = Date.now();
+      let showDevotion = true;
+
+      if (raw) {
+        const last = parseInt(raw, 10);
+        if (!isNaN(last) && (now - last) < SEVEN_HOURS_MS) {
+          showDevotion = false;
+        }
+      }
+
+      if (showDevotion) {
+        setLockScreen(devotionLockScreen);
+      } else {
+        setLockScreen(imageLockScreen);
+      }
+    }
+
+    // View All Notes: read localStorage["studyNotes"]
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function renderNotes() {
+      const container = document.getElementById('notesList');
+      if (!container) return;
+
+      let dataRaw = localStorage.getItem('studyNotes');
+      if (!dataRaw) {
+        container.innerHTML =
+          '<div class="notes-empty">No notes yet. Open a Deep Dive, write what Jesus is showing you, and tap “Save to Study Notes”.</div>';
+        return;
+      }
+
+      let notes;
+      try {
+        notes = JSON.parse(dataRaw);
+      } catch (e) {
+        console.error('Failed to parse studyNotes', e);
+        container.innerHTML =
+          '<div class="notes-empty">Could not read your notes. We will fix this soon.</div>';
+        return;
+      }
+
+      if (!Array.isArray(notes) || notes.length === 0) {
+        container.innerHTML =
+          '<div class="notes-empty">No notes yet. Open a Deep Dive, write what Jesus is showing you, and tap “Save to Study Notes”.</div>';
+        return;
+      }
+
+      // Show most recent first
+      const items = notes.slice().reverse();
+      let html = "";
+      for (const n of items) {
+        const ref = escapeHtml(n.reference || "Saved note");
+        const ver = escapeHtml(n.versionLabel || "");
+        let when = "";
+        if (n.savedAt) {
+          const dt = new Date(n.savedAt);
+          if (!isNaN(dt)) {
+            when = dt.toLocaleString();
+          }
+        }
+        const metaParts = [];
+        if (ref) metaParts.push(ref);
+        if (ver) metaParts.push(ver);
+        if (when) metaParts.push(when);
+        const metaLine = metaParts.join(" • ");
+
+        html += `
+          <div class="note-card">
+            <div class="note-meta">${metaLine}</div>
+            <div class="note-text">${escapeHtml(n.text || "")}</div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Initialize
+    decideInitialScreen();
+  </script>
+</body>
+</html>

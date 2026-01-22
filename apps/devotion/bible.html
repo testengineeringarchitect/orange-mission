@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OrangeOS Devotion</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .overlay {
+      background: rgba(0, 0, 0, 0.78);
+      border-radius: 16px;
+      padding: 40px 50px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+      max-width: 800px;
+      width: 90%;
+      text-align: center;
+      color: #f5f5f5;
+    }
+
+    h1 {
+      font-size: 2.6em;
+      margin-bottom: 12px;
+    }
+
+    .version-row {
+      margin: 12px 0 24px 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .version-row label {
+      font-size: 0.95em;
+      color: #ddd;
+    }
+
+    select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #222;
+      color: #f5f5f5;
+      min-width: 220px;
+    }
+
+    .reference {
+      font-size: 1.05em;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #ffd166;
+    }
+
+    .verse {
+      font-size: 1.4em;
+      line-height: 1.6;
+      margin: 10px auto 25px auto;
+      max-width: 700px;
+    }
+
+    .subtitle {
+      font-size: 1.05em;
+      margin-bottom: 25px;
+      color: #ddd;
+    }
+
+    .btn-primary {
+      margin-top: 5px;
+      padding: 10px 26px;
+      background-color: #ffa500;
+      color: #fff;
+      font-size: 1em;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background-color: #e58d00;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <h1>🍊 Welcome to Your Devotion</h1>
+
+    <div class="version-row">
+      <label for="versionSelect">Bible Version:</label>
+      <select id="versionSelect">
+        <option value="kjv">KJV</option>
+        <option value="greek">Greek-Rooted English</option>
+        <option value="es">Reina-Valera (Español)</option>
+        <option value="catholic">Catholic (Douay-Rheims)</option>
+      </select>
+    </div>
+
+    <p id="verseReference" class="reference">Loading verse...</p>
+    <p id="verseText" class="verse"></p>
+
+    <p class="subtitle">
+      Let the Word of Christ dwell in you richly today.
+    </p>
+
+    <button id="deepDiveBtn" class="btn-primary">🔍 Go Deeper</button>
+
+    <footer>OrangeOS — Walking with Jesus through every season</footer>
+  </div>
+
+  <script>
+    // Seasonal backgrounds
+    const backgrounds = {
+      0: "images/winter.jpg",   // Jan
+      1: "images/winter.jpg",   // Feb
+      2: "images/spring.jpg",   // Mar
+      3: "images/spring.jpg",   // Apr
+      4: "images/spring.jpg",   // May
+      5: "images/summer.jpg",   // Jun
+      6: "images/summer.jpg",   // Jul
+      7: "images/summer.jpg",   // Aug
+      8: "images/fall.jpg",     // Sep
+      9: "images/fall.jpg",     // Oct
+      10: "images/fall.jpg",    // Nov
+      11: "images/winter.jpg"   // Dec
+    };
+
+    const month = new Date().getMonth();
+    document.body.style.backgroundImage = `url('${backgrounds[month]}')`;
+
+    // Verse data with 4 versions including Catholic (Douay-Rheims)
+    const verseData = [
+      {
+        id: "isa26-3",
+        reference: "Isaiah 26:3",
+        versions: {
+          kjv: {
+            label: "KJV",
+            text:
+              "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee."
+          },
+          greek: {
+            label: "Greek-Rooted English",
+            text:
+              "You keep in perfect peace those whose minds are fixed on You, because they trust in You."
+          },
+          es: {
+            label: "Reina-Valera (Español)",
+            text:
+              "Tú guardarás en completa paz a aquel cuyo pensamiento en ti persevera, porque en ti ha confiado."
+          },
+          catholic: {
+            label: "Catholic (Douay-Rheims)",
+            text:
+              "Thou wilt keep peace, because our mind is stayed on thee, because we have trusted in thee."
+          }
+        }
+      },
+      {
+        id: "isa54-17",
+        reference: "Isaiah 54:17",
+        versions: {
+          kjv: {
+            label: "KJV",
+            text:
+              "No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee in judgment thou shalt condemn."
+          },
+          greek: {
+            label: "Greek-Rooted English",
+            text:
+              "No weapon formed against you will succeed, and every tongue raised against you in judgment you will refute."
+          },
+          es: {
+            label: "Reina-Valera (Español)",
+            text:
+              "Ninguna arma forjada contra ti prosperará, y toda lengua que se levante contra ti en juicio, tú condenarás."
+          },
+          catholic: {
+            label: "Catholic (Douay-Rheims)",
+            text:
+              "No weapon that is formed against thee shall prosper, and every tongue that resisteth thee in judgment thou shalt condemn."
+          }
+        }
+      },
+      {
+        id: "php4-13",
+        reference: "Philippians 4:13",
+        versions: {
+          kjv: {
+            label: "KJV",
+            text: "I can do all things through Christ which strengtheneth me."
+          },
+          greek: {
+            label: "Greek-Rooted English",
+            text: "I can do all things through Christ who gives me strength."
+          },
+          es: {
+            label: "Reina-Valera (Español)",
+            text: "Todo lo puedo en Cristo que me fortalece."
+          },
+          catholic: {
+            label: "Catholic (Douay-Rheims)",
+            text: "I can do all things in him who strengtheneth me."
+          }
+        }
+      },
+      {
+        id: "col2-13",
+        reference: "Colossians 2:13",
+        versions: {
+          kjv: {
+            label: "KJV",
+            text:
+              "And you, being dead in your sins and the uncircumcision of your flesh, hath he quickened together with him, having forgiven you all trespasses."
+          },
+          greek: {
+            label: "Greek-Rooted English",
+            text:
+              "You were dead in your sins, but God made you alive together with Christ, having forgiven you all your trespasses."
+          },
+          es: {
+            label: "Reina-Valera (Español)",
+            text:
+              "Y a vosotros, estando muertos en vuestros delitos y en la incircuncisión de vuestra carne, os dio vida juntamente con él, perdonándoos todos los pecados."
+          },
+          catholic: {
+            label: "Catholic (Douay-Rheims)",
+            text:
+              "And you, when you were dead in your sins and the uncircumcision of your flesh, he hath quickened together with him, forgiving you all offences."
+          }
+        }
+      },
+      {
+        id: "eph1-13",
+        reference: "Ephesians 1:13",
+        versions: {
+          kjv: {
+            label: "KJV",
+            text:
+              "In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."
+          },
+          greek: {
+            label: "Greek-Rooted English",
+            text:
+              "In Christ you also, when you heard the word of truth, the gospel of your salvation, and believed in Him, were sealed with the Holy Spirit of promise."
+          },
+          es: {
+            label: "Reina-Valera (Español)",
+            text:
+              "En él también vosotros, habiendo oído la palabra de verdad, el evangelio de vuestra salvación, y habiendo creído en él, fuisteis sellados con el Espíritu Santo de la promesa."
+          },
+          catholic: {
+            label: "Catholic (Douay-Rheims)",
+            text:
+              "In whom you also, after you had heard the word of truth, the gospel of your salvation; in whom also believing, you were sealed with the holy Spirit of promise."
+          }
+        }
+      }
+    ];
+
+    const versionSelect = document.getElementById("versionSelect");
+    const verseReferenceEl = document.getElementById("verseReference");
+    const verseTextEl = document.getElementById("verseText");
+    const deepDiveBtn = document.getElementById("deepDiveBtn");
+
+    let currentVerse = null;
+    let currentMeta = null;
+
+    function chooseDailyVerse() {
+      const index = Math.floor(Math.random() * verseData.length);
+      currentVerse = verseData[index];
+      renderCurrentVerse();
+    }
+
+    function renderCurrentVerse() {
+      if (!currentVerse) return;
+
+      const key = versionSelect.value;
+      const v =
+        currentVerse.versions[key] || currentVerse.versions["kjv"];
+
+      verseReferenceEl.innerText =
+        currentVerse.reference + " — " + v.label;
+      verseTextEl.innerText = v.text;
+
+      currentMeta = {
+        id: currentVerse.id,
+        reference: currentVerse.reference,
+        versionKey: key,
+        versionLabel: v.label,
+        text: v.text
+      };
+    }
+
+    versionSelect.addEventListener("change", renderCurrentVerse);
+
+    deepDiveBtn.addEventListener("click", () => {
+      if (!currentMeta) {
+        alert("Verse is still loading. Please try again.");
+        return;
+      }
+      localStorage.setItem("deepDiveMeta", JSON.stringify(currentMeta));
+      window.location.href = "deep-dive.html";
+    });
+
+    // Initialize
+    chooseDailyVerse();
+  </script>
+</body>
+</html>

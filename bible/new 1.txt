@@ -1,0 +1,13 @@
+spin up eclipse
+
+talking through my thought process and verbalize and approach sets.
+
+Selenium are main questions
+JAVA
+xpath manipulation and use
+implicit and explicit waits
+Katalon not alot of questions
+
+core basics around JAVA   big object models 
+inheritance
+encapsulation
