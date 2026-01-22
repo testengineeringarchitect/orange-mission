@@ -71,6 +71,14 @@ These real-life Jesus moments will guide us more than specs or trends ever could
 
 ---
 
+### 📱 Try the OrangeOS Phone Prototype
+
+> Works best on your phone or a narrow browser window.
+
+[▶️ **Open Phone Prototype**](https://testengineeringarchitect.github.io/orange-mission/shell/phone.html)
+
+---
+
 ## 🔥 Let’s Build the Tabernacle of Tech for Jesus
 
 ---
