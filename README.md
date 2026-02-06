@@ -75,7 +75,7 @@ These real-life Jesus moments will guide us more than specs or trends ever could
 
 > Works best on your phone or a narrow browser window.
 
-[▶️ **Open Phone Prototype**](https://testengineeringarchitect.github.io/orange-mission/shell/phone.html)
+[▶️ **Open Phone Prototype**](https://testengineeringarchitect.github.io/orange-mission/apps/devotion/bible.html)
 
 ---
 
