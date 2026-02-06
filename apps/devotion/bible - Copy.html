@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OrangeOS Devotion Phone Prototype</title>
+  <style>
+    :root {
+      --orange-soft: #ffcf9f;
+      --orange: #ffb347;
+      --orange-deep: #ff8a00;
+      --bg-top: #f5b17f;
+      --bg-bottom: #324968;
+      --navy: #020617;
+      --card-bg: rgba(0, 0, 0, 0.55);
+      --text-light: #f9fafb;
+      --muted: #d1d5db;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #111827 0%, #020617 45%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-light);
+    }
+
+    .phone {
+      width: 420px;
+      max-width: 100%;
+      aspect-ratio: 9 / 19.5;
+      background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      border-radius: 46px;
+      padding: 18px 18px 30px;
+      box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.8),
+        0 0 0 8px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      padding: 4px 6px 0;
+      color: #f9fafb;
+      opacity: 0.9;
+    }
+
+    .status-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .status-pill {
+      padding: 1px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-pill span.dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .notch {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 26px;
+      border-radius: 999px;
+      background: #000;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+    }
+
+    .screen-wrapper {
+      position: absolute;
+      inset: 60px 12px 30px;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* LOCK SCREEN */
+
+    .lock-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      transform: translateY(26px); /* push clock down a bit */
+    }
+
+    .lock-time {
+      font-size: 3.5rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .lock-date {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .lock-tagline {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+    }
+
+    .swipe-label {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      opacity: 0.9;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .swipe-label span {
+      opacity: 0.85;
+    }
+
+    .swipe-label::after {
+      content: "";
+      display: block;
+      margin: 8px auto 0;
+      width: 80px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .home-indicator {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.85);
+      opacity: 0.95;
+    }
+
+    /* DEVOTION SCREEN */
+
+    .devotion-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url("../devotion/images/winter.jpg");
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6);
+    }
+
+    .devotion-layer {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .devotion-card {
+      background: radial-gradient(circle at top, rgba(17, 24, 39, 0.95), rgba(15, 23, 42, 0.9));
+      border-radius: 26px;
+      padding: 22px 20px 20px;
+      max-width: 320px;
+      width: 100%;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(148, 163, 184, 0.35);
+      text-align: center;
+      color: #e5e7eb;
+    }
+
+    .dev-title {
+      font-size: 1.45rem;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .dev-title span.orange {
+      color: #f97316;
+      margin-right: 4px;
+    }
+
+    .dev-sub {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 14px;
+    }
+
+    .dev-version-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+    }
+
+    .dev-select {
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .dev-reference {
+      margin: 12px 0 6px;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fcd34d;
+    }
+
+    .dev-verse {
+      font-size: 0.98rem;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .dev-footer-text {
+      font-size: 0.78rem;
+      color: #9ca3af;
+      margin-bottom: 14px;
+    }
+
+    .dev-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      background: linear-gradient(135deg, #f97316, #f59e0b);
+      color: #111827;
+      cursor: pointer;
+      box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(249, 250, 251, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn-secondary {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.6);
+      color: #e5e7eb;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .dev-swipe {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 20px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .dev-swipe::after {
+      content: "";
+      display: block;
+      margin: 8px auto 0;
+      width: 70px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .tap-hint {
+      font-size: 0.72rem;
+      color: #e5e7eb;
+      opacity: 0.85;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    /* HOME SCREEN */
+
+    .home-screen-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 12px 10px 0;
+    }
+
+    .home-header {
+      text-align: center;
+      margin-top: 14px; /* slightly lower */
+      margin-bottom: 10px;
+    }
+
+    .home-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .home-subtitle {
+      font-size: 0.82rem;
+      color: #f9fafb;
+      opacity: 0.9;
+    }
+
+    .home-banner {
+      margin: 8px auto 16px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.55);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .home-banner-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px 12px;
+      justify-items: center;
+      margin-top: 8px;
+    }
+
+    .app-icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 24px;
+      background: radial-gradient(circle at 20% 0%, #fffaf3, #ffe4c7 55%, #fecaca 95%);
+      box-shadow:
+        0 16px 24px rgba(15, 23, 42, 0.7),
+        0 0 0 1.5px rgba(251, 146, 60, 0.45);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .app-icon::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 20px;
+      background: radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.98), transparent 60%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .app-inner {
+      position: relative;
+      z-index: 1;
+      font-size: 1.6rem;
+    }
+
+    .app-label {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      text-align: center;
+      color: #0f172a;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
+    }
+
+    .dock {
+      position: absolute;
+      left: 26px;
+      right: 26px;
+      bottom: 34px;
+      height: 66px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(248, 250, 252, 0.55), rgba(148, 163, 184, 0.42));
+      backdrop-filter: blur(14px);
+      box-shadow:
+        0 14px 26px rgba(15, 23, 42, 0.85),
+        0 0 0 1px rgba(248, 250, 252, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+    }
+
+    .dock-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 20% 0%, #fffdf8, #ffe2c6 60%, #fecaca 100%);
+      box-shadow:
+        0 10px 18px rgba(15, 23, 42, 0.55),
+        0 0 0 1px rgba(251, 146, 60, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .home-footer {
+      position: absolute;
+      bottom: 6px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.72rem;
+      color: rgba(15, 23, 42, 0.85);
+    }
+
+    .toast {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+      max-width: 260px;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <!-- Status + notch -->
+    <div class="status-row">
+      <div id="statusTime">7:23 PM</div>
+      <div class="status-right">
+        <div class="status-pill">
+          <span class="dot"></span>
+          <span>OrangeOS</span>
+        </div>
+        <div class="status-pill">🔒 Private</div>
+      </div>
+    </div>
+    <div class="notch"></div>
+
+    <div class="screen-wrapper">
+      <!-- LOCK SCREEN -->
+      <section id="screen-lock" class="screen active">
+        <div class="lock-body">
+          <div class="lock-time" id="lockTime">7:23 PM</div>
+          <div class="lock-date" id="lockDate">Wednesday, January 21</div>
+          <div class="lock-tagline">
+            OrangeOS — Walking with Jesus through every season.
+          </div>
+        </div>
+        <div class="swipe-label" id="lockSwipe">
+          <span>Swipe up to unlock</span>
+        </div>
+      </section>
+
+      <!-- DEVOTION SCREEN -->
+      <section id="screen-devotion" class="screen">
+        <div class="devotion-bg"></div>
+        <div class="devotion-layer">
+          <div class="devotion-card">
+            <div class="dev-title">
+              <span class="orange">🍊</span>
+              Welcome to Your Devotion
+            </div>
+            <div class="dev-sub">Start your day with Jesus at the center.</div>
+
+            <div class="dev-version-row">
+              <span>Bible Version:</span>
+              <select id="versionSelect" class="dev-select">
+                <option value="kjv">KJV</option>
+                <option value="esv">Greek-rooted (ESV-style)</option>
+                <option value="spa">Spanish (RVR)</option>
+                <option value="cat">Catholic (Douay-Rheims)</option>
+              </select>
+            </div>
+
+            <div id="verseRef" class="dev-reference">Colossians 2:13 — KJV</div>
+            <div id="verseText" class="dev-verse">
+              And you, being dead in your sins and the uncircumcision of your flesh,
+              hath he quickened together with him, having forgiven you all trespasses.
+            </div>
+
+            <div class="dev-footer-text">
+              Let the Word of Christ dwell in you richly today.
+            </div>
+
+            <div class="dev-buttons">
+              <button class="btn-primary" id="goDeeperBtn">🔎 Go Deeper</button>
+              <button class="btn-secondary" id="devotionToHomeBtn">Home</button>
+            </div>
+            <div class="tap-hint">
+              Tap <strong>Home</strong> or swipe up to see the rest of your apps.
+            </div>
+          </div>
+        </div>
+        <div class="dev-swipe" id="devSwipe">
+          Swipe up for Home
+        </div>
+      </section>
+
+      <!-- HOME SCREEN -->
+      <section id="screen-home" class="screen">
+        <div class="home-screen-inner">
+          <div class="home-header">
+            <div class="home-title">OrangeOS</div>
+            <div class="home-subtitle">Simpler and Christ-centered</div>
+          </div>
+
+          <div class="home-banner">
+            <div class="home-banner-dot"></div>
+            <span>Evening Prayer · 7:00 PM</span>
+          </div>
+
+          <div class="icon-grid">
+            <!-- Row 1 -->
+            <div class="app" id="iconDevotion">
+              <div class="app-icon">
+                <div class="app-inner">📖</div>
+              </div>
+              <div class="app-label">Daily Devotion</div>
+            </div>
+
+            <div class="app">
+              <div class="app-icon">
+                <div class="app-inner">🙏</div>
+              </div>
+              <div class="app-label">Prayer</div>
+            </div>
+
+            <div class="app">
+              <div class="app-icon">
+                <div class="app-inner">🛡️</div>
+              </div>
+              <div class="app-label">Settings</div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="app">
+              <div class="app-icon">
+                <div class="app-inner">✉️</div>
+              </div>
+              <div class="app-label">Gmail</div>
+            </div>
+
+            <div class="app">
+              <div class="app-icon">
+                <div class="app-inner">🌐</div>
+              </div>
+              <div class="app-label">Chrome</div>
+            </div>
+
+            <div class="app">
+              <div class="app-icon">
+                <div class="app-inner">👥</div>
+              </div>
+              <div class="app-label">FaceMeets</div>
+            </div>
+
+            <!-- Row 3: Community -->
+            <div class="app">
+              <div class="app-icon">
+                <div class="app-inner">🤝</div>
+              </div>
+              <div class="app-label">Community</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock">
+          <div class="dock-icon">📞</div>
+          <div class="dock-icon">💬</div>
+          <div class="dock-icon">📷</div>
+          <div class="dock-icon">⏰</div>
+        </div>
+
+        <div class="home-footer">
+          OrangeOS — Rooted in Scripture, Built for Eternity
+        </div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <div class="home-indicator"></div>
+  </div>
+
+  <script>
+    // CLOCK
+    function formatTime(d) {
+      let h = d.getHours();
+      const m = d.getMinutes().toString().padStart(2, "0");
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      return `${h}:${m} ${ampm}`;
+    }
+    function formatDateLong(d) {
+      const opts = { weekday: "long", month: "long", day: "numeric" };
+      return d.toLocaleDateString(undefined, opts);
+    }
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("statusTime").textContent = formatTime(now);
+      document.getElementById("lockTime").textContent = formatTime(now);
+      document.getElementById("lockDate").textContent = formatDateLong(now);
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    // SCREEN SWITCHING
+    const screens = {
+      lock: document.getElementById("screen-lock"),
+      devotion: document.getElementById("screen-devotion"),
+      home: document.getElementById("screen-home")
+    };
+    function showScreen(name) {
+      Object.values(screens).forEach((el) => el.classList.remove("active"));
+      screens[name].classList.add("active");
+    }
+
+    document.getElementById("lockSwipe").addEventListener("click", () => {
+      showScreen("devotion");
+    });
+    document.getElementById("devSwipe").addEventListener("click", () => {
+      showScreen("home");
+    });
+    document.getElementById("devotionToHomeBtn").addEventListener("click", () =>
+      showScreen("home")
+    );
+    document.getElementById("iconDevotion").addEventListener("click", () =>
+      showScreen("devotion")
+    );
+
+    // TOAST
+    const toastEl = document.getElementById("toast");
+    let toastTimeout;
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.style.opacity = "1";
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toastEl.style.opacity = "0";
+      }, 2200);
+    }
+
+    // "Coming soon" for non-devotion icons
+    const appEls = document.querySelectorAll(".app");
+    appEls.forEach((el) => {
+      if (el.id === "iconDevotion") return;
+      const label =
+        (el.querySelector(".app-label") &&
+          el.querySelector(".app-label").textContent) ||
+        "This app";
+      el.addEventListener("click", () => {
+        showToast(`${label} is coming soon in OrangeOS Seed.`);
+      });
+    });
+
+    const dockIcons = document.querySelectorAll(".dock-icon");
+    const dockLabels = ["Phone", "Messages", "Camera", "Clock & Reminders"];
+    dockIcons.forEach((el, idx) => {
+      el.addEventListener("click", () => {
+        showToast(`${dockLabels[idx]} app will arrive in a later prototype.`);
+      });
+    });
+
+    // DEVOTION VERSES
+    const verses = [
+      {
+        id: "col2-13",
+        reference: "Colossians 2:13",
+        texts: {
+          kjv:
+            "And you, being dead in your sins and the uncircumcision of your flesh, " +
+            "hath he quickened together with him, having forgiven you all trespasses.",
+          esv:
+            "And you, who were dead in your trespasses and the uncircumcision of your flesh, " +
+            "God made alive together with him, having forgiven us all our trespasses.",
+          spa:
+            "Y a vosotros, estando muertos en pecados y en la incircuncisión de vuestra carne, " +
+            "os dio vida juntamente con él, perdonándoos todos los pecados.",
+          cat:
+            "And you, when you were dead in your sins and the uncircumcision of your flesh, " +
+            "he hath quickened together with him, forgiving you all offences."
+        }
+      },
+      {
+        id: "eph1-13",
+        reference: "Ephesians 1:13",
+        texts: {
+          kjv:
+            "In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: " +
+            "in whom also after that ye believed, ye were sealed with that holy Spirit of promise.",
+          esv:
+            "In him you also, when you heard the word of truth, the gospel of your salvation, " +
+            "and believed in him, were sealed with the promised Holy Spirit.",
+          spa:
+            "En él también vosotros, habiendo oído la palabra de verdad, el evangelio de vuestra salvación, " +
+            "y habiendo creído en él, fuisteis sellados con el Espíritu Santo de la promesa.",
+          cat:
+            "In whom you also, after you had heard the word of truth (the gospel of your salvation); " +
+            "in whom also believing, you were signed with the holy Spirit of promise."
+        }
+      },
+      {
+        id: "php4-13",
+        reference: "Philippians 4:13",
+        texts: {
+          kjv: "I can do all things through Christ which strengtheneth me.",
+          esv: "I can do all things through him who strengthens me.",
+          spa: "Todo lo puedo en Cristo que me fortalece.",
+          cat: "I can do all things in him who strengtheneth me."
+        }
+      },
+      {
+        id: "isa26-3",
+        reference: "Isaiah 26:3",
+        texts: {
+          kjv:
+            "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.",
+          esv:
+            "You keep him in perfect peace whose mind is stayed on you, because he trusts in you.",
+          spa:
+            "Tú guardarás en completa paz a aquel cuyo pensamiento en ti persevera; porque en ti ha confiado.",
+          cat: "Thou wilt keep peace, because we have hoped in thee."
+        }
+      },
+      {
+        id: "isa54-17",
+        reference: "Isaiah 54:17",
+        texts: {
+          kjv:
+            "No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee " +
+            "in judgment thou shalt condemn. This is the heritage of the servants of the LORD, " +
+            "and their righteousness is of me, saith the LORD.",
+          esv:
+            "No weapon that is fashioned against you shall succeed, and you shall refute every tongue that rises " +
+            "against you in judgment. This is the heritage of the servants of the LORD.",
+          spa:
+            "Ninguna arma forjada contra ti prosperará, y condenarás toda lengua que se levante contra ti en juicio. " +
+            "Esta es la herencia de los siervos de Jehová.",
+          cat:
+            "No weapon that is formed against thee shall prosper: and every tongue that resisteth thee in judgment, " +
+            "thou shalt condemn. This is the inheritance of the servants of the Lord."
+        }
+      }
+    ];
+
+    const versionNames = {
+      kjv: "KJV",
+      esv: "Greek-rooted",
+      spa: "Spanish",
+      cat: "Catholic"
+    };
+
+    let currentVerse = verses[0];
+
+    const verseRefEl = document.getElementById("verseRef");
+    const verseTextEl = document.getElementById("verseText");
+    const versionSelect = document.getElementById("versionSelect");
+
+    function pickDailyVerse() {
+      const idx = new Date().getDate() % verses.length;
+      currentVerse = verses[idx];
+    }
+
+    function renderVerse() {
+      const vKey = versionSelect.value;
+      const vLabel = versionNames[vKey] || vKey.toUpperCase();
+      verseRefEl.textContent = `${currentVerse.reference} — ${vLabel}`;
+      verseTextEl.textContent = currentVerse.texts[vKey];
+    }
+
+    pickDailyVerse();
+    renderVerse();
+    versionSelect.addEventListener("change", renderVerse);
+
+    // GO DEEPER
+    document.getElementById("goDeeperBtn").addEventListener("click", () => {
+      const vKey = versionSelect.value;
+      const vLabel = versionNames[vKey] || vKey.toUpperCase();
+      const meta = {
+        id: currentVerse.id,
+        reference: currentVerse.reference,
+        versionKey: vKey,
+        versionLabel: vLabel,
+        text: currentVerse.texts[vKey]
+      };
+      try {
+        localStorage.setItem("deepDiveMeta", JSON.stringify(meta));
+      } catch (e) {
+        console.warn("Unable to persist deepDiveMeta:", e);
+      }
+      window.location.href = "deep-dive.html";
+    });
+  </script>
+</body>
+</html>

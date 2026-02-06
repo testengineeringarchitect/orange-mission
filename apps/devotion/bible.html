@@ -2,326 +2,757 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OrangeOS Devotion</title>
+  <title>OrangeOS Devotion Prototype</title>
   <style>
+    /* ---- PAGE BACKGROUND ---- */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #171b2c 0%, #05060b 60%, #020308 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ---- PHONE FRAME ---- */
+    .phone {
+      position: relative;
+      width: 430px;
+      height: 880px;
+      border-radius: 46px;
+      background: #000;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.9);
+      overflow: hidden;
+      border: 2px solid #222;
+    }
+
+    .phone-inner {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border-radius: 40px;
+      overflow: hidden;
+      background: #111827;
+    }
+
+    /* Dynamic Island / notch */
+    .notch {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 30px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.9);
+      box-shadow: 0 0 12px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5f5f5;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+    .notch span {
+      margin: 0 4px;
+    }
+    .pill-private {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2dd4bf, #22c55e);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .pill-private-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #ecfdf5;
+    }
+
+    /* Status bar time top-left */
+    .status-time {
+      position: absolute;
+      top: 18px;
+      left: 22px;
+      color: #f9fafb;
+      font-size: 12px;
+    }
+
+    /* ---- COMMON SCREEN STYLES ---- */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      color: #f3f4f6;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    .season-bg {
+      width: 100%;
+      height: 100%;
       background-size: cover;
       background-position: center;
-      background-repeat: no-repeat;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      position: relative;
     }
 
-    .overlay {
-      background: rgba(0, 0, 0, 0.78);
-      border-radius: 16px;
-      padding: 40px 50px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-      max-width: 800px;
-      width: 90%;
+    /* ---- LOCK SCREEN ---- */
+
+    /* dark glass overlay so text is readable, gives “inside window” feeling */
+    .lock-dim {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top, rgba(15,23,42,0.18), rgba(15,23,42,0.55));
+      backdrop-filter: blur(2px);
+    }
+
+    .lock-content, .lock-unlock-area {
+      position: relative;
+      z-index: 1;
+    }
+
+    .lock-content {
+      margin-top: 170px; /* move clock down a bit */
       text-align: center;
-      color: #f5f5f5;
+      color: #f9fafb;
     }
-
-    h1 {
-      font-size: 2.6em;
-      margin-bottom: 12px;
-    }
-
-    .version-row {
-      margin: 12px 0 24px 0;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .version-row label {
-      font-size: 0.95em;
-      color: #ddd;
-    }
-
-    select {
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #555;
-      background: #222;
-      color: #f5f5f5;
-      min-width: 220px;
-    }
-
-    .reference {
-      font-size: 1.05em;
+    .lock-time {
+      font-size: 54px;
       font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .lock-date {
+      margin-top: 6px;
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+    .lock-mission {
+      margin-top: 26px;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .lock-unlock-area {
+      position: absolute;
+      bottom: 40px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #e5e7eb;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .lock-unlock-text {
       margin-bottom: 10px;
-      color: #ffd166;
+      letter-spacing: 0.16em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+    .home-bar {
+      margin: 0 auto;
+      width: 110px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(248,250,252,0.96);
+      box-shadow: 0 0 12px rgba(248,250,252,0.8);
     }
 
-    .verse {
-      font-size: 1.4em;
+    /* ---- DEVOTION SCREEN ---- */
+    .devotion-overlay {
+      margin-top: 110px;
+      width: 86%;
+      max-width: 360px;
+      padding: 26px 26px 28px;
+      border-radius: 30px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.92), rgba(15,23,42,0.85));
+      box-shadow: 0 18px 40px rgba(0,0,0,0.85);
+      text-align: center;
+    }
+    .devotion-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f9fafb;
+      margin-bottom: 6px;
+    }
+    .devotion-subtitle {
+      font-size: 13px;
+      color: #e5e7eb;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    .version-row {
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #d1d5db;
+    }
+    .version-row select {
+      margin-top: 6px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #4b5563;
+      background: rgba(15,23,42,0.9);
+      color: #f9fafb;
+      font-size: 13px;
+    }
+
+    .devotion-ref {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fde68a;
+      margin-bottom: 10px;
+    }
+    .devotion-verse {
+      font-size: 16px;
       line-height: 1.6;
-      margin: 10px auto 25px auto;
-      max-width: 700px;
+      margin-bottom: 18px;
+      color: #f3f4f6;
     }
-
-    .subtitle {
-      font-size: 1.05em;
-      margin-bottom: 25px;
-      color: #ddd;
+    .devotion-tagline {
+      font-size: 13px;
+      color: #e5e7eb;
+      opacity: 0.9;
+      margin-bottom: 20px;
     }
 
     .btn-primary {
-      margin-top: 5px;
-      padding: 10px 26px;
-      background-color: #ffa500;
-      color: #fff;
-      font-size: 1em;
-      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 22px;
       border-radius: 999px;
+      border: none;
       cursor: pointer;
+      background: linear-gradient(135deg, #f97316, #facc15);
+      color: #111827;
+      font-size: 14px;
       font-weight: 600;
+      box-shadow: 0 12px 25px rgba(251,191,36,0.42);
     }
-
     .btn-primary:hover {
-      background-color: #e58d00;
+      filter: brightness(1.05);
     }
 
-    footer {
-      margin-top: 30px;
-      font-size: 0.9em;
-      color: #bbb;
+    .devotion-unlock-area {
+      position: absolute;
+      bottom: 40px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #e5e7eb;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ---- HOME SCREEN ---- */
+
+    .home-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #fed7aa 0%, #fecdd3 30%, #9ca3af 65%, #1f2937 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .home-top {
+      margin-top: 54px;
+      text-align: center;
+      color: #111827;
+    }
+    .home-top-title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .home-top-sub {
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .home-banner {
+      margin-top: 14px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.86);
+      color: #e5e7eb;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.6);
+    }
+    .home-banner-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .apps-grid {
+      margin-top: 70px;
+      width: 84%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      justify-items: center;
+      row-gap: 34px;
+      column-gap: 20px;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .app-icon {
+      width: 78px;
+      height: 78px;
+      border-radius: 26px;
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #ffe2c6 35%, #ffb09d 70%, #f97316 100%);
+      box-shadow:
+        0 16px 34px rgba(0,0,0,0.35),
+        inset 0 2px 4px rgba(255,255,255,0.8),
+        inset 0 -4px 10px rgba(255,148,104,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-icon-inner {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(248,250,252,0.82));
+      box-shadow:
+        0 4px 8px rgba(0,0,0,0.12),
+        inset 0 2px 4px rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    /* Tint variants */
+    .app-devotion .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #ffe7cf 35%, #ffc37e 70%, #f97316 100%);
+    }
+    .app-prayer .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #ffe0f2 30%, #ff9acd 65%, #ec4899 100%);
+    }
+    .app-settings .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #e0f2fe 30%, #93c5fd 65%, #2563eb 100%);
+    }
+    .app-gmail .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #fee2e2 30%, #fecaca 65%, #f97316 100%);
+    }
+    .app-chrome .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #dcfce7 30%, #bbf7d0 65%, #22c55e 100%);
+    }
+    .app-facemeets .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #e0e7ff 30%, #c7d2fe 65%, #6366f1 100%);
+    }
+    .app-community .app-icon {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #e0f2fe 30%, #dbeafe 65%, #38bdf8 100%);
+    }
+
+    .app-label {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #111827;
+    }
+
+    /* Dock */
+    .dock {
+      position: absolute;
+      bottom: 38px;
+      left: 40px;
+      right: 40px;
+      padding: 12px 26px;
+      border-radius: 32px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(243,244,246,0.92));
+      box-shadow: 0 18px 36px rgba(0,0,0,0.35);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dock-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 20px;
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #dcfce7 35%, #4ade80 100%);
+      box-shadow:
+        0 12px 24px rgba(0,0,0,0.22),
+        inset 0 2px 4px rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .dock-icon:nth-child(2) {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #e5f2ff 35%, #bfdbfe 100%);
+    }
+    .dock-icon:nth-child(3) {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #fee2e2 35%, #fecaca 100%);
+    }
+    .dock-icon:nth-child(4) {
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, #fef9c3 35%, #fde047 100%);
+    }
+
+    .home-indicator {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      opacity: 0.85;
     }
   </style>
 </head>
 <body>
-  <div class="overlay">
-    <h1>🍊 Welcome to Your Devotion</h1>
+  <div class="phone">
+    <div class="phone-inner" id="phoneInner">
 
-    <div class="version-row">
-      <label for="versionSelect">Bible Version:</label>
-      <select id="versionSelect">
-        <option value="kjv">KJV</option>
-        <option value="greek">Greek-Rooted English</option>
-        <option value="es">Reina-Valera (Español)</option>
-        <option value="catholic">Catholic (Douay-Rheims)</option>
-      </select>
+      <div class="status-time" id="statusTime">7:23 PM</div>
+
+      <div class="notch">
+        <span>OrangeOS</span>
+        <span class="pill-private">
+          <span class="pill-private-dot"></span> Private
+        </span>
+      </div>
+
+      <!-- LOCK SCREEN -->
+      <div class="screen active" id="lockScreen">
+        <div class="season-bg" id="lockBg">
+          <div class="lock-dim"></div>
+
+          <div class="lock-content">
+            <div class="lock-time" id="lockTime">4:57 PM</div>
+            <div class="lock-date" id="lockDate">Thursday, January 22</div>
+            <div class="lock-mission">
+              OrangeOS — Walking with Jesus through every season.
+            </div>
+          </div>
+
+          <div class="lock-unlock-area" id="lockUnlockArea">
+            <div class="lock-unlock-text">SWIPE UP TO UNLOCK</div>
+            <div class="home-bar"></div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+
+      <!-- DEVOTION SCREEN -->
+      <div class="screen" id="devotionScreen">
+        <div class="season-bg" id="devotionBg">
+          <div class="devotion-overlay">
+            <div class="devotion-title">🍊 Welcome to Your Devotion</div>
+            <div class="devotion-subtitle">
+              Start by resting your mind on God’s Word.
+            </div>
+
+            <div class="version-row">
+              Bible Version:<br />
+              <select id="versionSelect">
+                <option value="kjv">KJV</option>
+                <option value="greek">Greek-rooted (Clear English)</option>
+                <option value="es">Spanish</option>
+                <option value="catholic">Catholic (Douay-Rheims)</option>
+              </select>
+            </div>
+
+            <div class="devotion-ref" id="verseRef">Colossians 2:13 — KJV</div>
+            <div class="devotion-verse" id="verseText">
+              Loading verse...
+            </div>
+            <div class="devotion-tagline">
+              Let the Word of Christ dwell in you richly today.
+            </div>
+
+            <button class="btn-primary" id="btnDeepDive">
+              🔍 Go Deeper
+            </button>
+          </div>
+
+          <div class="devotion-unlock-area" id="devotionUnlockArea">
+            <div class="lock-unlock-text">SWIPE UP TO HOME</div>
+            <div class="home-bar"></div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+
+      <!-- HOME SCREEN -->
+      <div class="screen" id="homeScreen">
+        <div class="home-screen">
+          <div class="home-top">
+            <div class="home-top-title">OrangeOS</div>
+            <div class="home-top-sub">Simpler and Christ-centered</div>
+            <div class="home-banner">
+              <span class="home-banner-dot"></span>
+              Evening Prayer · 7:00 PM
+            </div>
+          </div>
+
+          <div class="apps-grid">
+            <div class="app app-devotion" id="appDevotion">
+              <div class="app-icon">
+                <div class="app-icon-inner">📖</div>
+              </div>
+              <div class="app-label">Daily Devotion</div>
+            </div>
+
+            <div class="app app-prayer" id="appPrayer">
+              <div class="app-icon">
+                <div class="app-icon-inner">🙏</div>
+              </div>
+              <div class="app-label">Prayer</div>
+            </div>
+
+            <div class="app app-settings" id="appSettings">
+              <div class="app-icon">
+                <div class="app-icon-inner">🛡️</div>
+              </div>
+              <div class="app-label">Settings</div>
+            </div>
+
+            <div class="app app-gmail" id="appGmail">
+              <div class="app-icon">
+                <div class="app-icon-inner">✉️</div>
+              </div>
+              <div class="app-label">Gmail</div>
+            </div>
+
+            <div class="app app-chrome" id="appChrome">
+              <div class="app-icon">
+                <div class="app-icon-inner">🌐</div>
+              </div>
+              <div class="app-label">Chrome</div>
+            </div>
+
+            <div class="app app-facemeets" id="appFaceMeets">
+              <div class="app-icon">
+                <div class="app-icon-inner">👥</div>
+              </div>
+              <div class="app-label">FaceMeets</div>
+            </div>
+
+            <div class="app app-community" id="appCommunity">
+              <div class="app-icon">
+                <div class="app-icon-inner">🤝</div>
+              </div>
+              <div class="app-label">Community</div>
+            </div>
+          </div>
+
+          <div class="dock">
+            <div class="dock-icon" title="Phone">📞</div>
+            <div class="dock-icon" title="Messages">💬</div>
+            <div class="dock-icon" title="Camera">📷</div>
+            <div class="dock-icon" title="Clock & Reminders">⏰</div>
+          </div>
+
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+
     </div>
-
-    <p id="verseReference" class="reference">Loading verse...</p>
-    <p id="verseText" class="verse"></p>
-
-    <p class="subtitle">
-      Let the Word of Christ dwell in you richly today.
-    </p>
-
-    <button id="deepDiveBtn" class="btn-primary">🔍 Go Deeper</button>
-
-    <footer>OrangeOS — Walking with Jesus through every season</footer>
   </div>
 
   <script>
-    // Seasonal backgrounds
-    const backgrounds = {
-      0: "images/winter.jpg",   // Jan
-      1: "images/winter.jpg",   // Feb
-      2: "images/spring.jpg",   // Mar
-      3: "images/spring.jpg",   // Apr
-      4: "images/spring.jpg",   // May
-      5: "images/summer.jpg",   // Jun
-      6: "images/summer.jpg",   // Jul
-      7: "images/summer.jpg",   // Aug
-      8: "images/fall.jpg",     // Sep
-      9: "images/fall.jpg",     // Oct
-      10: "images/fall.jpg",    // Nov
-      11: "images/winter.jpg"   // Dec
+    /* ---------- TIME & DATE ---------- */
+    function formatTime(date) {
+      let h = date.getHours();
+      const m = date.getMinutes().toString().padStart(2, "0");
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${m} ${ampm}`;
+    }
+
+    function formatDate(date) {
+      const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      const months = [
+        "January","February","March","April","May","June",
+        "July","August","September","October","November","December"
+      ];
+      return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`;
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("statusTime").textContent = formatTime(now);
+      document.getElementById("lockTime").textContent = formatTime(now);
+      document.getElementById("lockDate").textContent = formatDate(now);
+    }
+
+    /* ---------- SEASONAL BACKGROUNDS ---------- */
+    function setSeasonBackground() {
+      const month = new Date().getMonth();
+      const backgrounds = {
+        0: "images/winter.jpg",
+        1: "images/winter.jpg",
+        2: "images/spring.jpg",
+        3: "images/spring.jpg",
+        4: "images/spring.jpg",
+        5: "images/summer.jpg",
+        6: "images/summer.jpg",
+        7: "images/summer.jpg",
+        8: "images/fall.jpg",
+        9: "images/fall.jpg",
+        10: "images/fall.jpg",
+        11: "images/winter.jpg"
+      };
+      const img = backgrounds[month] || "images/winter.jpg";
+      document.getElementById("lockBg").style.backgroundImage = `url('${img}')`;
+      document.getElementById("devotionBg").style.backgroundImage = `url('${img}')`;
+    }
+
+    /* ---------- SCREEN SWITCHING ---------- */
+    const lockScreen = document.getElementById("lockScreen");
+    const devotionScreen = document.getElementById("devotionScreen");
+    const homeScreen = document.getElementById("homeScreen");
+
+    function showScreen(name) {
+      lockScreen.classList.remove("active");
+      devotionScreen.classList.remove("active");
+      homeScreen.classList.remove("active");
+
+      if (name === "lock") lockScreen.classList.add("active");
+      if (name === "devotion") devotionScreen.classList.add("active");
+      if (name === "home") homeScreen.classList.add("active");
+    }
+
+    // Lock: swipe up area -> devotion
+    document.getElementById("lockUnlockArea")
+      .addEventListener("click", () => showScreen("devotion"));
+
+    // Devotion: swipe up area -> home
+    document.getElementById("devotionUnlockArea")
+      .addEventListener("click", () => showScreen("home"));
+
+    // Home: open devotion via Devotion icon
+    document.getElementById("appDevotion")
+      .addEventListener("click", () => showScreen("devotion"));
+
+    // Other app icons: simple placeholder alerts
+    function comingSoon(name) {
+      alert(`${name} is coming soon in OrangeOS Seed.`);
+    }
+    document.getElementById("appPrayer").onclick = () => comingSoon("Prayer");
+    document.getElementById("appSettings").onclick = () => comingSoon("Settings & Privacy");
+    document.getElementById("appGmail").onclick = () => comingSoon("Gmail integration");
+    document.getElementById("appChrome").onclick = () => comingSoon("Browser");
+    document.getElementById("appFaceMeets").onclick = () => comingSoon("FaceMeets");
+    document.getElementById("appCommunity").onclick = () => comingSoon("Community");
+
+    /* ---------- VERSES & VERSION SWITCHER ---------- */
+
+    const verseLibrary = {
+      "eph1-13": {
+        ref: "Ephesians 1:13",
+        kjv: "In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise.",
+        greek: "In Christ, you also, when you heard the message of truth—the gospel that saves you—and believed in Him, were sealed with the Holy Spirit of promise.",
+        es: "En él también vosotros, habiendo oído la palabra de verdad, el evangelio de vuestra salvación, y habiendo creído en él, fuisteis sellados con el Espíritu Santo de la promesa.",
+        catholic: "In whom you also, after you had heard the word of truth, the gospel of your salvation; in whom also believing, you were signed with the holy Spirit of promise."
+      },
+      "col2-13": {
+        ref: "Colossians 2:13",
+        kjv: "And you, being dead in your sins and the uncircumcision of your flesh, hath he quickened together with him, having forgiven you all trespasses;",
+        greek: "You were dead because of your sins, but God made you alive together with Christ, having forgiven you all your trespasses.",
+        es: "Y a vosotros, estando muertos en vuestros delitos y en la incircuncisión de vuestra carne, os dio vida juntamente con él, perdonándoos todos los delitos.",
+        catholic: "And you, when you were dead in your sins and the uncircumcision of your flesh, he hath quickened together with him, forgiving you all offences."
+      },
+      "php4-13": {
+        ref: "Philippians 4:13",
+        kjv: "I can do all things through Christ which strengtheneth me.",
+        greek: "I am able to face all things through Christ who gives me strength.",
+        es: "Todo lo puedo en Cristo que me fortalece.",
+        catholic: "I can do all things in him who strengthens me."
+      },
+      "isa54-17": {
+        ref: "Isaiah 54:17",
+        kjv: "No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee in judgment thou shalt condemn. This is the heritage of the servants of the LORD, and their righteousness is of me, saith the LORD.",
+        greek: "No weapon forged against you will succeed, and you will refute every tongue that rises against you in judgment. This is the heritage of the servants of the LORD.",
+        es: "Ninguna arma forjada contra ti prosperará, y condenarás toda lengua que se levante contra ti en juicio. Esta es la herencia de los siervos de Jehová.",
+        catholic: "No weapon that is formed against thee shall prosper: and every tongue that resisteth thee in judgment thou shalt condemn. This is the inheritance of the servants of the Lord."
+      }
     };
 
-    const month = new Date().getMonth();
-    document.body.style.backgroundImage = `url('${backgrounds[month]}')`;
+    const verseIds = Object.keys(verseLibrary);
+    let currentVerseId = "col2-13";
 
-    // Verse data with 4 versions including Catholic (Douay-Rheims)
-    const verseData = [
-      {
-        id: "isa26-3",
-        reference: "Isaiah 26:3",
-        versions: {
-          kjv: {
-            label: "KJV",
-            text:
-              "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee."
-          },
-          greek: {
-            label: "Greek-Rooted English",
-            text:
-              "You keep in perfect peace those whose minds are fixed on You, because they trust in You."
-          },
-          es: {
-            label: "Reina-Valera (Español)",
-            text:
-              "Tú guardarás en completa paz a aquel cuyo pensamiento en ti persevera, porque en ti ha confiado."
-          },
-          catholic: {
-            label: "Catholic (Douay-Rheims)",
-            text:
-              "Thou wilt keep peace, because our mind is stayed on thee, because we have trusted in thee."
-          }
-        }
-      },
-      {
-        id: "isa54-17",
-        reference: "Isaiah 54:17",
-        versions: {
-          kjv: {
-            label: "KJV",
-            text:
-              "No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee in judgment thou shalt condemn."
-          },
-          greek: {
-            label: "Greek-Rooted English",
-            text:
-              "No weapon formed against you will succeed, and every tongue raised against you in judgment you will refute."
-          },
-          es: {
-            label: "Reina-Valera (Español)",
-            text:
-              "Ninguna arma forjada contra ti prosperará, y toda lengua que se levante contra ti en juicio, tú condenarás."
-          },
-          catholic: {
-            label: "Catholic (Douay-Rheims)",
-            text:
-              "No weapon that is formed against thee shall prosper, and every tongue that resisteth thee in judgment thou shalt condemn."
-          }
-        }
-      },
-      {
-        id: "php4-13",
-        reference: "Philippians 4:13",
-        versions: {
-          kjv: {
-            label: "KJV",
-            text: "I can do all things through Christ which strengtheneth me."
-          },
-          greek: {
-            label: "Greek-Rooted English",
-            text: "I can do all things through Christ who gives me strength."
-          },
-          es: {
-            label: "Reina-Valera (Español)",
-            text: "Todo lo puedo en Cristo que me fortalece."
-          },
-          catholic: {
-            label: "Catholic (Douay-Rheims)",
-            text: "I can do all things in him who strengtheneth me."
-          }
-        }
-      },
-      {
-        id: "col2-13",
-        reference: "Colossians 2:13",
-        versions: {
-          kjv: {
-            label: "KJV",
-            text:
-              "And you, being dead in your sins and the uncircumcision of your flesh, hath he quickened together with him, having forgiven you all trespasses."
-          },
-          greek: {
-            label: "Greek-Rooted English",
-            text:
-              "You were dead in your sins, but God made you alive together with Christ, having forgiven you all your trespasses."
-          },
-          es: {
-            label: "Reina-Valera (Español)",
-            text:
-              "Y a vosotros, estando muertos en vuestros delitos y en la incircuncisión de vuestra carne, os dio vida juntamente con él, perdonándoos todos los pecados."
-          },
-          catholic: {
-            label: "Catholic (Douay-Rheims)",
-            text:
-              "And you, when you were dead in your sins and the uncircumcision of your flesh, he hath quickened together with him, forgiving you all offences."
-          }
-        }
-      },
-      {
-        id: "eph1-13",
-        reference: "Ephesians 1:13",
-        versions: {
-          kjv: {
-            label: "KJV",
-            text:
-              "In whom ye also trusted, after that ye heard the word of truth, the gospel of your salvation: in whom also after that ye believed, ye were sealed with that holy Spirit of promise."
-          },
-          greek: {
-            label: "Greek-Rooted English",
-            text:
-              "In Christ you also, when you heard the word of truth, the gospel of your salvation, and believed in Him, were sealed with the Holy Spirit of promise."
-          },
-          es: {
-            label: "Reina-Valera (Español)",
-            text:
-              "En él también vosotros, habiendo oído la palabra de verdad, el evangelio de vuestra salvación, y habiendo creído en él, fuisteis sellados con el Espíritu Santo de la promesa."
-          },
-          catholic: {
-            label: "Catholic (Douay-Rheims)",
-            text:
-              "In whom you also, after you had heard the word of truth, the gospel of your salvation; in whom also believing, you were sealed with the holy Spirit of promise."
-          }
-        }
-      }
-    ];
-
-    const versionSelect = document.getElementById("versionSelect");
-    const verseReferenceEl = document.getElementById("verseReference");
+    const verseRefEl = document.getElementById("verseRef");
     const verseTextEl = document.getElementById("verseText");
-    const deepDiveBtn = document.getElementById("deepDiveBtn");
+    const versionSelect = document.getElementById("versionSelect");
 
-    let currentVerse = null;
-    let currentMeta = null;
-
-    function chooseDailyVerse() {
-      const index = Math.floor(Math.random() * verseData.length);
-      currentVerse = verseData[index];
-      renderCurrentVerse();
+    function pickRandomVerse() {
+      const idx = Math.floor(Math.random() * verseIds.length);
+      currentVerseId = verseIds[idx];
     }
 
-    function renderCurrentVerse() {
-      if (!currentVerse) return;
+    function getVersionLabel(code) {
+      if (code === "kjv") return "KJV";
+      if (code === "greek") return "Greek-rooted";
+      if (code === "es") return "Spanish";
+      if (code === "catholic") return "Catholic (Douay-Rheims)";
+      return code;
+    }
 
-      const key = versionSelect.value;
-      const v =
-        currentVerse.versions[key] || currentVerse.versions["kjv"];
+    function renderVerse() {
+      const verse = verseLibrary[currentVerseId];
+      const version = versionSelect.value;
+      verseRefEl.textContent = `${verse.ref} — ${getVersionLabel(version)}`;
+      verseTextEl.textContent = verse[version];
+    }
 
-      verseReferenceEl.innerText =
-        currentVerse.reference + " — " + v.label;
-      verseTextEl.innerText = v.text;
+    versionSelect.addEventListener("change", renderVerse);
 
-      currentMeta = {
-        id: currentVerse.id,
-        reference: currentVerse.reference,
-        versionKey: key,
-        versionLabel: v.label,
-        text: v.text
+    /* ---------- DEEP DIVE LAUNCH ---------- */
+    document.getElementById("btnDeepDive").addEventListener("click", () => {
+      const verse = verseLibrary[currentVerseId];
+      const version = versionSelect.value;
+      const meta = {
+        id: currentVerseId,
+        reference: verse.ref,
+        versionCode: version,
+        versionLabel: getVersionLabel(version),
+        text: verse[version]
       };
-    }
-
-    versionSelect.addEventListener("change", renderCurrentVerse);
-
-    deepDiveBtn.addEventListener("click", () => {
-      if (!currentMeta) {
-        alert("Verse is still loading. Please try again.");
-        return;
-      }
-      localStorage.setItem("deepDiveMeta", JSON.stringify(currentMeta));
+      localStorage.setItem("deepDiveMeta", JSON.stringify(meta));
       window.location.href = "deep-dive.html";
     });
 
-    // Initialize
-    chooseDailyVerse();
+    /* ---------- INIT ---------- */
+    updateClock();
+    setSeasonBackground();
+    pickRandomVerse();
+    renderVerse();
+    setInterval(updateClock, 1000);
   </script>
 </body>
 </html>

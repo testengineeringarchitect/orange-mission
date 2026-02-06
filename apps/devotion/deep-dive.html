@@ -1,500 +1,443 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Deep Dive | OrangeOS</title>
   <style>
+    :root {
+      --bg-outer-top: #020617;
+      --bg-outer-bottom: #000;
+      --accent: #f97316;
+      --card-bg: #18181b;
+      --text-main: #f9fafb;
+      --text-muted: #d4d4d8;
+    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 60px 20px;
-      font-family: 'Georgia', serif;
-      background-color: #111;
-      color: #f4f4f4;
-      text-align: center;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, var(--bg-outer-top) 0%, var(--bg-outer-bottom) 55%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
     }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 40px;
-      background: #181818;
-      border-radius: 14px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    .phone {
+      width: 420px;
+      max-width: 100%;
+      aspect-ratio: 9 / 19.5;
+      background: linear-gradient(180deg, #0b1220, #020617);
+      border-radius: 46px;
+      padding: 18px 18px 30px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 8px rgba(0,0,0,0.7);
+      position: relative;
+      overflow: hidden;
     }
-
-    h1 {
-      margin-bottom: 10px;
-      color: #FFA500;
+    .status-row {
+      display:flex;align-items:center;justify-content:space-between;
+      font-size:.82rem;padding:4px 6px 0;color:#e5e7eb;opacity:.9;
     }
-
-    h2 {
-      margin-top: 10px;
-      margin-bottom: 5px;
+    .status-right{display:flex;gap:6px;align-items:center;}
+    .status-pill{
+      padding:1px 10px;border-radius:999px;
+      background:rgba(15,23,42,.9);font-size:.7rem;
+      display:inline-flex;align-items:center;gap:4px;
     }
-
-    .version-label {
-      font-size: 0.95em;
-      color: #ccc;
-      margin-bottom: 6px;
+    .status-pill span.dot{
+      width:7px;height:7px;border-radius:999px;background:#22c55e;
     }
-
-    .version-hint {
-      font-size: 0.9em;
-      color: #999;
-      margin-bottom: 20px;
+    .notch{
+      position:absolute;top:18px;left:50%;transform:translateX(-50%);
+      width:180px;height:26px;border-radius:999px;background:#000;
+      box-shadow:0 4px 10px rgba(0,0,0,.9);
     }
-
-    blockquote {
-      font-size: 1.5em;
-      font-style: italic;
-      margin: 20px auto 30px auto;
-      color: #ddd;
+    .screen-wrapper{position:absolute;inset:60px 12px 30px;}
+    .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
+    .dd-card{
+      margin:auto;width:100%;height:100%;padding:20px 16px 12px;
+      background:radial-gradient(circle at top,#111827,#020617 60%);
+      border-radius:30px;
+      box-shadow:0 18px 40px rgba(0,0,0,.75),0 0 0 1px rgba(55,65,81,.7);
+      overflow-y:auto;
     }
-
-    .section-title {
-      margin-top: 30px;
-      margin-bottom: 10px;
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #FFD166;
-      text-align: left;
+    .back-link{
+      font-size:.85rem;color:#c4c4ff;text-align:left;cursor:pointer;margin-bottom:8px;
     }
-
-    ul.support-list {
-      text-align: left;
-      padding-left: 20px;
-      margin-top: 5px;
+    .back-link:hover{text-decoration:underline;}
+    h1{margin:4px 0 0;font-size:1.5rem;color:var(--accent);text-align:center;}
+    h2{margin:4px 0;font-size:1.1rem;text-align:center;}
+    .version-label{text-align:center;font-size:.83rem;color:#e4e4e7;margin-bottom:4px;}
+    .version-note{text-align:center;font-size:.76rem;color:#a1a1aa;margin-bottom:14px;}
+    blockquote{
+      margin:10px auto 16px;padding:0 6px;font-size:.98rem;
+      font-style:italic;line-height:1.7;color:#e5e5e5;text-align:center;
     }
-
-    ul.support-list li {
-      margin-bottom: 6px;
+    .section-title{
+      margin-top:8px;margin-bottom:4px;font-weight:600;font-size:.95rem;
+      color:#fde68a;display:flex;align-items:center;gap:6px;
     }
-
-    .notes {
-      margin-top: 30px;
-      text-align: left;
+    .section-title span.icon{font-size:1rem;}
+    ul.support-list{
+      margin:4px 0 12px 18px;padding-left:0;font-size:.84rem;color:var(--text-muted);
     }
-
-    textarea {
-      width: 100%;
-      height: 120px;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #444;
-      border-radius: 6px;
-      box-sizing: border-box;
-      background: #101010;
-      color: #f4f4f4;
+    ul.support-list li{margin-bottom:4px;}
+    #devotionalBody{
+      font-size:.86rem;line-height:1.6;color:var(--text-muted);
+      margin-top:2px;margin-bottom:10px;
     }
-
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #FFA500;
-      color: white;
-      font-size: 1em;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+    .audio-controls{
+      display:flex;justify-content:center;gap:10px;
+      margin:6px 0 14px;flex-wrap:wrap;
     }
-
-    button:hover {
-      background-color: #e39000;
+    .audio-controls button{
+      border-radius:999px;border:none;padding:7px 14px;
+      font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
     }
-
-    .footer {
-      margin-top: 40px;
-      font-size: 0.9em;
-      color: #888;
+    #listenBtn{
+      background:linear-gradient(135deg,#f97316,#fbbf24);
+      color:#111827;box-shadow:0 10px 20px rgba(0,0,0,.7);
     }
-
-    .back-link {
-      display: inline-block;
-      margin-bottom: 20px;
-      font-size: 0.95em;
-      color: #ddd;
-      text-decoration: underline;
-      cursor: pointer;
+    #stopBtn{
+      background:rgba(39,39,42,.9);color:#e5e7eb;
+      border:1px solid rgba(113,113,122,.8);
     }
-
-    .audio-controls {
-      margin-top: 10px;
-      text-align: left;
+    .notes{margin-top:4px;}
+    .notes h3{
+      font-size:.92rem;margin-bottom:4px;display:flex;align-items:center;gap:6px;
     }
-
-    .audio-controls button {
-      margin-right: 10px;
+    .notes h3 span.icon{font-size:1rem;}
+    textarea{
+      width:100%;height:90px;padding:8px;font-size:.86rem;
+      border:1px solid #3f3f46;border-radius:8px;box-sizing:border-box;
+      background:#09090b;color:#f9fafb;resize:vertical;
+    }
+    button.save-notes{
+      margin-top:6px;padding:7px 14px;background-color:#f97316;
+      color:#111827;font-size:.85rem;border:none;border-radius:999px;
+      cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+      box-shadow:0 10px 18px rgba(0,0,0,.7);
+    }
+    .footer{margin-top:10px;font-size:.78rem;color:#a1a1aa;text-align:center;}
+    .home-indicator{
+      position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+      width:90px;height:4px;border-radius:999px;background:rgba(255,255,255,.85);
+    }
+    .toast{
+      position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+      padding:6px 10px;border-radius:999px;font-size:.78rem;
+      background:rgba(15,23,42,.96);color:#f9fafb;
+      opacity:0;pointer-events:none;transition:opacity .2s ease;
+      box-shadow:0 12px 22px rgba(0,0,0,.8);max-width:260px;text-align:center;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Back link wired directly to bible.html -->
-    <a href="bible.html" class="back-link">← Back to Devotionals</a>
+  <div class="phone">
+    <div class="status-row">
+      <div id="statusTime">7:23 PM</div>
+      <div class="status-right">
+        <div class="status-pill">
+          <span class="dot"></span>
+          <span>OrangeOS</span>
+        </div>
+        <div class="status-pill">🔍 Deep Dive</div>
+      </div>
+    </div>
+    <div class="notch"></div>
 
-    <h1>🔍 Deep Dive Study</h1>
-    <h2 id="ddReference">Reference</h2>
-    <div id="ddVersionLabel" class="version-label"></div>
-    <div id="ddVersionHint" class="version-hint"></div>
-    <blockquote id="ddText">Verse text will appear here.</blockquote>
+    <div class="screen-wrapper">
+      <section class="screen">
+        <div class="dd-card">
+          <div class="back-link" onclick="goBack()">← Back to Devotionals</div>
 
-    <!-- Supporting verses block -->
-    <div id="supportingSection">
-      <div class="section-title">📖 Supporting Verses</div>
-      <ul id="supportList" class="support-list"></ul>
+          <h1>🔎 Deep Dive Study</h1>
+          <h2 id="ddReference">Reference</h2>
+          <div id="ddVersionLabel" class="version-label"></div>
+          <div id="versionNote" class="version-note"></div>
+
+          <blockquote id="ddText">Verse text will appear here.</blockquote>
+
+          <div id="supportingSection">
+            <div class="section-title">
+              <span class="icon">📘</span>
+              <span>Supporting Verses</span>
+            </div>
+            <ul id="supportList" class="support-list"></ul>
+          </div>
+
+          <div id="applicationSection">
+            <div class="section-title">
+              <span class="icon">💡</span>
+              <span>Real-Life Application</span>
+            </div>
+            <p id="devotionalBody"></p>
+          </div>
+
+          <div class="audio-controls">
+            <button id="listenBtn">▶ Listen to This Study</button>
+            <button id="stopBtn">■ Stop Audio</button>
+          </div>
+
+          <div class="notes">
+            <h3>
+              <span class="icon">📝</span>
+              <span>Your Study Notes</span>
+            </h3>
+            <textarea id="userNotes" placeholder="What is Jesus showing you through this verse?"></textarea>
+            <button class="save-notes" onclick="saveNotes()">📓 Save to Study Notes</button>
+          </div>
+
+          <div class="footer">
+            OrangeOS — Rooted in Scripture, Built for Eternity
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- Real-life application block -->
-    <div id="applicationSection">
-      <div class="section-title">💡 Real-Life Application</div>
-      <p id="devotionalBody"></p>
-    </div>
-
-    <!-- Audio controls -->
-    <div id="audioSection" class="audio-controls">
-      <button id="listenBtn">▶ Listen to This Study</button>
-      <button id="stopBtn">⏹ Stop Audio</button>
-    </div>
-
-    <div class="notes">
-      <h3>📝 Your Study Notes</h3>
-      <textarea id="userNotes" placeholder="What is Jesus showing you through this verse?"></textarea>
-      <button onclick="saveNotes()">📓 Save to Study Notes</button>
-    </div>
-
-    <div class="footer">
-      OrangeOS — Rooted in Scripture, Built for Eternity
-    </div>
+    <div id="toast" class="toast"></div>
+    <div class="home-indicator"></div>
   </div>
 
   <script>
-    /*************** 1. Deep-study content ***************/
-    const deepStudies = {
-      // ISAIAH 26:3 — Perfect peace
-      "isa26-3": {
-        supporting: [
-          { ref: "Isaiah 26:4", snippet: "Trust ye in the LORD for ever: for in the LORD JEHOVAH is everlasting strength." },
-          { ref: "Philippians 4:6–7", snippet: "The peace of God, which passeth all understanding, shall keep your hearts and minds." },
-          { ref: "John 14:27", snippet: "My peace I give unto you… Let not your heart be troubled." },
-          { ref: "Romans 8:6", snippet: "To be spiritually minded is life and peace." },
-          { ref: "Colossians 3:15", snippet: "Let the peace of God rule in your hearts." }
-        ],
-        devotionalHtml: `
-          Isaiah 26:3 says that God will keep in <strong>perfect peace</strong> the one whose mind
-          is stayed on Him because he trusts in Him. This is not shallow, fake calm;
-          it is God’s own peace guarding the mind that keeps returning to Him.<br><br>
+    function goBack() {
+      window.location.href = "bible.html";
+    }
 
-          Verse 4 continues the thought: “Trust ye in the LORD for ever: for in the
-          LORD JEHOVAH is everlasting strength.” Philippians 4:6–7 explains that
-          as we bring everything to God in prayer, His peace — beyond understanding —
-          guards our hearts and minds. Jesus in John 14:27 gives His peace, not as
-          the world gives. Romans 8:6 says that a mind set on the Spirit is life
-          and peace, and Colossians 3:15 calls us to let the peace of God rule in
-          our hearts.<br><br>
+    function formatTime(d){
+      let h=d.getHours();const m=d.getMinutes().toString().padStart(2,"0");
+      const ampm=h>=12?"PM":"AM";h=h%12||12;return `${h}:${m} ${ampm}`;
+    }
+    function updateStatusTime(){
+      document.getElementById("statusTime").textContent=formatTime(new Date());
+    }
+    updateStatusTime();
+    setInterval(updateStatusTime,30000);
 
-          In everyday life, this means your peace is not tied to your circumstances,
-          your bank account, your record, or your feelings. It is tied to <em>where
-          your mind rests</em>. When your thoughts constantly circle around “What if?”
-          and “What will I do?”, anxiety grows. When your thoughts return again and
-          again to who God is, what He has promised in Christ, and how He has already
-          carried you this far, His peace begins to rule instead of fear.<br><br>
+    const toastEl=document.getElementById("toast");
+    let toastTimeout;
+    function showToast(msg){
+      toastEl.textContent=msg;
+      toastEl.style.opacity="1";
+      clearTimeout(toastTimeout);
+      toastTimeout=setTimeout(()=>toastEl.style.opacity="0",2000);
+    }
 
-          One simple practice is to catch your mind wandering into panic and gently
-          bring it back to Jesus with Scripture — even out loud:
-          “Lord, You said You will keep me in perfect peace as my mind stays on You.
-          I choose to trust You right now.” Over time, constant exposure to verses
-          like these re-trains your mindset. You begin to think more like Jesus:
-          steady, trusting the Father, even when the waves are high.<br><br>
+    const metaJson=localStorage.getItem("deepDiveMeta");
+    let meta=null;
+    try{ if(metaJson) meta=JSON.parse(metaJson);}catch(e){console.error(e);}
 
-          That is part of what OrangeOS is for: to put the Word in front of your
-          eyes and in your ears every day, so your mind can stay on Him in a world
-          that is always trying to pull it away.
-        `
-      },
+    const ddRef=document.getElementById("ddReference");
+    const ddVersionLabel=document.getElementById("ddVersionLabel");
+    const ddText=document.getElementById("ddText");
+    const versionNoteEl=document.getElementById("versionNote");
+    const ulSupport=document.getElementById("supportList");
+    const devoBody=document.getElementById("devotionalBody");
 
-      // ISAIAH 54:17 — No weapon
-      "isa54-17": {
-        supporting: [
-          { ref: "Romans 8:31", snippet: "If God be for us, who can be against us?" },
-          { ref: "Psalm 91:1–4", snippet: "He is my refuge and my fortress… under his wings shalt thou trust." },
-          { ref: "2 Corinthians 10:4–5", snippet: "The weapons of our warfare are mighty through God… bringing every thought into captivity." },
-          { ref: "Revelation 12:10–11", snippet: "They overcame him by the blood of the Lamb and by the word of their testimony." },
-          { ref: "Romans 8:33–34", snippet: "Who shall lay any thing to the charge of God's elect? It is God that justifieth." }
-        ],
-        devotionalHtml: `
-          Isaiah 54:17 promises: <strong>“No weapon that is formed against thee shall prosper;
-          and every tongue that shall rise against thee in judgment thou shalt condemn.”</strong>
-          This does not mean no attack will ever come; it means nothing formed against
-          God’s people will ultimately succeed in destroying His purpose for them.<br><br>
-
-          Romans 8:31 echoes this: “If God be for us, who can be against us?”
-          Psalm 91 pictures God as your refuge and fortress. Second Corinthians 10:4–5
-          reminds you that your weapons are spiritual — truth, prayer, the Word —
-          and that even your thoughts are part of the battle. Revelation 12:10–11
-          shows believers overcoming the accuser by the blood of the Lamb and the
-          word of their testimony. Romans 8:33–34 says no one can successfully
-          bring a charge against God’s chosen, because it is God who justifies.<br><br>
-
-          In real life, this speaks to both outward attacks and inner accusations.
-          People may misunderstand you, reject you, or bring up your past.
-          The enemy loves to whisper that your record, your failures, or your
-          weakness disqualify you. But God says the final word is His:
-          He declares you righteous in Christ, and no weapon — legal, emotional,
-          spiritual, or verbal — can overturn His verdict.<br><br>
-
-          This does not mean you will never hurt or never face consequences.
-          It means that even what is meant for evil cannot cancel God’s calling
-          on your life. As you fill your mind with verses like these, your posture
-          changes from fear to confidence in Him. You stop living as if every
-          attack will destroy you and start living as one who is already secure
-          in Jesus, sealed and forgiven.<br><br>
-
-          OrangeOS exists to help you remember that daily — to start your day not
-          with the world’s noise, but with God’s promises, so you walk out into
-          the battle already armed with truth.
-        `
-      },
-
-      // EPHESIANS 1:13 — Sealed with the Spirit
-      "eph1-13": {
-        supporting: [
-          { ref: "Ephesians 4:30", snippet: "You are sealed unto the day of redemption." },
-          { ref: "2 Corinthians 1:21–22", snippet: "God has sealed us and given the Spirit as a guarantee." },
-          { ref: "John 10:28–29", snippet: "No one can snatch His sheep out of His hand." },
-          { ref: "Romans 8:38–39", snippet: "Nothing can separate us from the love of God in Christ." },
-          { ref: "Philippians 1:6", snippet: "He who began a good work in you will complete it." }
-        ],
-        devotionalHtml: `
-          When Paul says you are <strong>“sealed with the Holy Spirit of promise”</strong>,
-          he is saying that the moment you truly trust Jesus, God puts His own mark on you.
-          A seal in Bible times meant ownership, protection, and authenticity.
-          It is like the King putting His royal stamp on a document — it now officially belongs to Him.<br><br>
-
-          These supporting passages show the same truth: the Spirit is your guarantee
-          (2 Corinthians 1:21–22). You are sealed until the day of redemption
-          (Ephesians 4:30). Jesus says no one can snatch you from His hand
-          (John 10:28–29), and Romans 8:38–39 declares that nothing can separate you
-          from His love. Philippians 1:6 reminds you that what Jesus started in you,
-          He will finish.<br><br>
-
-          In real life, this changes your mindset. You are not waking up trying to
-          <em>earn</em> God’s approval; you wake up <strong>already accepted and sealed</strong>.
-          You fight sin and old habits <em>from</em> freedom, not <em>for</em> freedom.
-          When shame or your past whispers “God is done with you,” you can answer
-          with Scripture: “I am sealed. I belong to Jesus. He promised, and He
-          cannot lie.”<br><br>
-
-          This is why constant exposure to Scripture matters — reading, hearing,
-          and even listening while you drive or get ready. If you fill those
-          spaces with random noise or pop music, your thoughts drift with the world.
-          If you fill them with the Word, your mind slowly starts to think more
-          like Jesus. That is how the Spirit uses truth to renew your mind.
-        `
-      },
-
-      // COLOSSIANS 2:13 — Fully forgiven
-      "col2-13": {
-        supporting: [
-          { ref: "Colossians 2:14", snippet: "The record of debt against us was nailed to the cross." },
-          { ref: "Colossians 1:13–14", snippet: "In Him we have redemption and the forgiveness of sins." },
-          { ref: "Psalm 103:12", snippet: "As far as east is from west, He has removed our transgressions." },
-          { ref: "Hebrews 10:17", snippet: "Their sins and iniquities will I remember no more." },
-          { ref: "Romans 8:1", snippet: "There is now no condemnation to those in Christ Jesus." }
-        ],
-        devotionalHtml: `
-          Colossians 2:13 says that when you were dead in your sins, God made you
-          alive together with Christ, <strong>“having forgiven you all trespasses.”</strong>
-          Not some. Not just the small ones. <strong>All</strong> — past, present, and future.<br><br>
-
-          Verse 14 explains how: the record of debt that stood against you
-          was nailed to the cross. Colossians 1:13–14 reminds you that in Jesus
-          you have redemption and forgiveness. Psalm 103:12 pictures your sins
-          removed as far as east is from west. Hebrews 10:17 adds that God chooses
-          to remember them no more, and Romans 8:1 declares no condemnation for
-          those in Christ.<br><br>
-
-          Practically, this means you are not trying to work off a spiritual
-          “criminal record” with God. You may still live with earthly consequences,
-          but in heaven’s courtroom the charges are dropped because Jesus took them.
-          That frees you from shame (“God can’t use me”) and from pride
-          (“I’m doing pretty well on my own”).<br><br>
-
-          Day by day, as you read and hear these verses, your mind is re-trained:
-          <strong>“I am forgiven. I am alive with Christ. I am not condemned.”</strong>
-          From that place, obedience becomes a response of love, not a payment plan.
-        `
-      },
-
-      // PHILIPPIANS 4:13 — Strength in Christ
-      "php4-13": {
-        supporting: [
-          { ref: "Philippians 4:11–12", snippet: "Paul learned to be content in every situation." },
-          { ref: "2 Corinthians 12:9", snippet: "My grace is sufficient; My power is made perfect in weakness." },
-          { ref: "John 15:5", snippet: "Without Me you can do nothing." },
-          { ref: "Isaiah 40:31", snippet: "Those who wait on the LORD shall renew their strength." },
-          { ref: "Romans 8:37", snippet: "We are more than conquerors through Him who loved us." }
-        ],
-        devotionalHtml: `
-          Philippians 4:13 is often quoted on its own:
-          <strong>“I can do all things through Christ which strengtheneth me.”</strong>
-          In context, Paul is talking about learning to be content whether he has a lot
-          or a little, whether he is free or in prison. The “all things” is not
-          about winning every game or getting every promotion; it is about
-          being able to walk through <em>any circumstance</em> by the strength of Christ.<br><br>
-
-          The surrounding verses (Philippians 4:11–12) show that Paul has learned
-          contentment. Second Corinthians 12:9 reminds you that Christ’s power
-          is made perfect in weakness. John 15:5 says that apart from Jesus you can
-          do nothing, while Isaiah 40:31 promises renewed strength for those who
-          wait on the Lord. Romans 8:37 says that in all these things we are more
-          than conquerors through Him who loved us.<br><br>
-
-          In everyday life, this means you don’t have to be strong on your own.
-          You may feel overwhelmed by work, by your record, by family pressures,
-          or by temptation. Philippians 4:13 is Jesus’ invitation to stop trying
-          to muscle your way through in the flesh and instead lean into Him:
-          prayer, Scripture, honest dependence.<br><br>
-
-          One simple practice: when you catch yourself thinking,
-          “I can’t handle this,” respond with the truth:
-          “On my own I can’t, but <strong>through Christ who strengthens me, I can walk
-          through whatever He allows today.</strong>”
-        `
-      }
+    const deepStudies={
+      "eph1-13":{supporting:[
+        {ref:"Ephesians 4:30 (KJV)",snippet:"You are sealed unto the day of redemption."},
+        {ref:"2 Corinthians 1:21–22 (KJV)",snippet:"God has sealed us and given the Spirit as a guarantee."},
+        {ref:"John 10:28–29 (KJV)",snippet:"No one can snatch His sheep out of His hand."},
+        {ref:"Romans 8:38–39 (KJV)",snippet:"Nothing can separate us from the love of God in Christ."},
+        {ref:"Philippians 1:6 (KJV)",snippet:"He who began a good work in you will complete it."}
+      ],devotionalHtml:`
+        When Paul says you are <strong>“sealed with the Holy Spirit of promise”</strong>, he means that the moment you truly
+        trust Jesus, God marks you as His own. A seal in Bible times was a royal stamp — ownership, protection, and authenticity.<br><br>
+        These passages repeat that promise: the Spirit is your guarantee, you are kept until the day of redemption, and no one can
+        pull you out of Christ’s hand. Nothing in life or death can separate you from His love.<br><br>
+        In daily life this changes your mindset. You do not wake up trying to earn God’s approval. You wake up <strong>already
+        accepted and sealed</strong>. You fight old habits and sin <em>from</em> freedom, not <em>for</em> freedom. When shame or your
+        past says, “God is done with you,” you answer with Scripture: “I belong to Jesus. I am sealed. He promised, and He cannot lie.”<br><br>
+        This is why steady exposure to Scripture matters — reading, hearing, and even listening while you drive or get ready.
+        When you fill those moments with the Word instead of noise, the Spirit slowly retrains your thoughts to think more like Jesus.
+      `},
+      "col2-13":{supporting:[
+        {ref:"Colossians 2:14 (KJV)",snippet:"The record of debt against us was nailed to His cross."},
+        {ref:"Colossians 1:13–14 (KJV)",snippet:"In Him we have redemption and the forgiveness of sins."},
+        {ref:"Psalm 103:12 (KJV)",snippet:"He removes our transgressions as far as east from west."},
+        {ref:"Hebrews 10:17 (KJV)",snippet:"Their sins and iniquities will I remember no more."},
+        {ref:"Romans 8:1 (KJV)",snippet:"No condemnation to them which are in Christ Jesus."}
+      ],devotionalHtml:`
+        Colossians 2:13 says God made you alive with Christ, <strong>“having forgiven you all trespasses.”</strong> Not just the small
+        things, but every sin — past, present, and future.<br><br>
+        Verse 14 explains that the legal record against you was nailed to the cross. Other passages echo this: your guilt is
+        removed, God chooses not to remember your sins, and there is now no condemnation for those in Christ.<br><br>
+        Practically, that means you are not working off a spiritual criminal record. You may still live with earthly consequences,
+        but heaven’s courtroom has already dropped the charges because Jesus took them. That frees you from shame
+        (“God could never use me”) and from pride (“I’m doing pretty well on my own”).<br><br>
+        As you rehearse these truths, your mind gets re-trained: <strong>“I am forgiven. I am alive in Christ. I am no longer
+        condemned.”</strong> Obedience becomes a loving response, not a payment plan.
+      `},
+      "php4-13":{supporting:[
+        {ref:"Philippians 4:11–12 (KJV)",snippet:"Paul learned to be content in every situation."},
+        {ref:"2 Corinthians 12:9 (KJV)",snippet:"Christ’s strength is made perfect in weakness."},
+        {ref:"John 15:5 (KJV)",snippet:"Without Jesus we can do nothing."},
+        {ref:"Isaiah 40:31 (KJV)",snippet:"Those who wait on the LORD renew their strength."},
+        {ref:"Romans 8:37 (KJV)",snippet:"We are more than conquerors through Him that loved us."}
+      ],devotionalHtml:`
+        Philippians 4:13 is often quoted alone, but in context Paul is talking about contentment — having a lot or a little,
+        being free or imprisoned, and still trusting Christ. The <strong>“all things”</strong> means every circumstance God places you in.<br><br>
+        These supporting verses remind you that strength comes from Jesus, not from your own willpower. You are invited to bring
+        pressure, stress, and weakness to Him instead of trying to grind through in the flesh.<br><br>
+        When you catch yourself thinking, “I can’t handle this,” answer with the truth: <strong>“On my own I can’t, but through Christ
+        who strengthens me, I can walk through whatever He allows today.”</strong> That is how this verse becomes a steady, quiet courage,
+        not a slogan on a poster.
+      `},
+      "isa26-3":{supporting:[
+        {ref:"Isaiah 26:4 (KJV)",snippet:"Trust ye in the LORD for ever: for in the LORD is everlasting strength."},
+        {ref:"Philippians 4:6–7 (KJV)",snippet:"The peace of God guards your heart and mind in Christ Jesus."},
+        {ref:"John 14:27 (KJV)",snippet:"Jesus gives a peace the world cannot give or take away."},
+        {ref:"Psalm 112:7 (KJV)",snippet:"His heart is fixed, trusting in the LORD."},
+        {ref:"Romans 8:6 (KJV)",snippet:"To be spiritually minded is life and peace."}
+      ],devotionalHtml:`
+        Isaiah 26:3 promises that God keeps in <strong>perfect peace</strong> the one whose mind is stayed on Him because he trusts Him.
+        Peace is not the absence of problems; it is the steady awareness that your Father is in control.<br><br>
+        These supporting verses show that peace is tied to trust and focus. When your thoughts are fixed on Jesus, not on worst-case
+        scenarios, His Spirit guards your heart and mind even while circumstances stay hard.<br><br>
+        In practice this looks like repeatedly turning your attention back to the Lord through Scripture, prayer, and worship.
+        When anxiety rises, you deliberately hand the situation to Him and say, “I choose to trust You here.” Over time, your reflex
+        shifts from panic to prayer — and His peace becomes more familiar than fear.
+      `},
+      "isa54-17":{supporting:[
+        {ref:"Romans 8:31 (KJV)",snippet:"If God be for us, who can be against us?"},
+        {ref:"Psalm 27:1 (KJV)",snippet:"The LORD is my light and salvation; whom shall I fear?"},
+        {ref:"2 Corinthians 10:4–5 (KJV)",snippet:"The weapons of our warfare are mighty through God."},
+        {ref:"1 John 4:4 (KJV)",snippet:"Greater is He that is in you, than he that is in the world."},
+        {ref:"Ephesians 6:10–11 (KJV)",snippet:"Be strong in the Lord; put on the whole armour of God."}
+      ],devotionalHtml:`
+        Isaiah 54:17 does not promise that weapons will never be formed against you — only that they will not <strong>finally</strong>
+        prosper. God claims the final word over accusations, spiritual attack, and human opposition.<br><br>
+        The supporting passages reinforce this: if God is for you, who can stand against you? He equips you with spiritual armor and
+        inner strength so that even when you are wounded, you are not destroyed.<br><br>
+        In real life this means you can expect resistance — from the enemy, from the world, even from your own history — and still
+        move forward. You answer lies with Scripture, bring every thought captive to Christ, and remember that your heritage as His
+        servant is protection, not abandonment. The battle may be fierce, but the outcome belongs to the Lord.
+      `}
     };
 
-    /*************** 2. Helper functions ***************/
-    function loadDeepStudy(meta) {
-      const study = deepStudies[meta.id];
+    function loadDeepStudy(metaObj){
+      const study=deepStudies[metaObj.id];
+      document.getElementById("supportingSection").style.display="block";
+      document.getElementById("applicationSection").style.display="block";
 
-      const ul = document.getElementById("supportList");
-      const devo = document.getElementById("devotionalBody");
-
-      document.getElementById("supportingSection").style.display = "block";
-      document.getElementById("applicationSection").style.display = "block";
-
-      if (!study) {
-        ul.innerHTML = "<li>Deep dive content for this verse is coming soon.</li>";
-        devo.textContent =
+      if(!study){
+        ulSupport.innerHTML="<li>Deep dive content for this verse is coming soon.</li>";
+        devoBody.textContent=
           "For now, thank Jesus for what this verse says and ask Him to show you how it applies to your life today.";
         return;
       }
-
-      ul.innerHTML = "";
-      study.supporting.forEach(s => {
-        const li = document.createElement("li");
-        li.textContent = `${s.ref} (${meta.versionLabel}) – ${s.snippet}`;
-        ul.appendChild(li);
+      ulSupport.innerHTML="";
+      study.supporting.forEach(s=>{
+        const li=document.createElement("li");
+        li.textContent=`${s.ref} – ${s.snippet}`;
+        ulSupport.appendChild(li);
       });
-
-      devo.innerHTML = study.devotionalHtml;
+      devoBody.innerHTML=study.devotionalHtml;
     }
 
-    function showFallback() {
-      document.getElementById("supportingSection").style.display = "block";
-      document.getElementById("applicationSection").style.display = "block";
-      document.getElementById("supportList").innerHTML =
-        "<li>Deep dive content for this verse is coming soon.</li>";
-      document.getElementById("devotionalBody").textContent =
-        "Ask the Lord to open this verse to you and write your thoughts below.";
+    function showFallback(){
+      ddRef.textContent="No verse selected";
+      ddVersionLabel.textContent="";
+      versionNoteEl.textContent=
+        "Open the devotion page first, choose a verse, and tap Go Deeper to load a study.";
+      ddText.textContent="";
+      document.getElementById("supportingSection").style.display="none";
+      document.getElementById("applicationSection").style.display="none";
     }
 
-    function saveNotes() {
-      const notes = document.getElementById("userNotes").value.trim();
-      if (!notes) {
-        alert("Please enter something to save.");
-        return;
-      }
+    let notesKey="deepNotes_unknown";
+    const notesEl=document.getElementById("userNotes");
 
-      const existing = localStorage.getItem("studyNotes") || "";
-      const timestamp = new Date().toLocaleString();
-      const header = meta
-        ? `${meta.reference} (${meta.versionLabel}) — "${meta.text}"`
-        : "Unknown verse";
-
-      const entry = `\n[${timestamp}]\n${header}\n${notes}\n---\n`;
-      localStorage.setItem("studyNotes", existing + entry);
-      alert("Saved to Study Notes!");
-      document.getElementById("userNotes").value = "";
+    function loadNotes(metaObj){
+      notesKey=metaObj?`deepNotes_${metaObj.id}_${metaObj.versionKey||"kjv"}`:notesKey;
+      try{
+        const saved=localStorage.getItem(notesKey);
+        if(saved) notesEl.value=saved;
+      }catch(e){console.warn("Unable to load notes:",e);}
     }
 
-    // Audio helpers
-    function getPlainTextFromHtml(html) {
-      const div = document.createElement("div");
-      div.innerHTML = html;
-      return div.textContent || div.innerText || "";
-    }
-
-    function listenToStudy() {
-      if (!("speechSynthesis" in window)) {
-        alert("Audio reading is not supported in this browser.");
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-
-      const devoHtml = document.getElementById("devotionalBody").innerHTML;
-      const devoText = getPlainTextFromHtml(devoHtml);
-
-      const baseText = meta
-        ? `${meta.reference} (${meta.versionLabel}). ${meta.text}`
-        : "";
-
-      const fullText = baseText + ". " + devoText;
-
-      const utter = new SpeechSynthesisUtterance(fullText);
-      utter.rate = 1.0;
-      utter.pitch = 1.0;
-
-      window.speechSynthesis.speak(utter);
-    }
-
-    function stopAudio() {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+    function saveNotes(){
+      try{
+        localStorage.setItem(notesKey,notesEl.value||"");
+        showToast("Notes saved on this device.");
+      }catch(e){
+        console.warn("Unable to save notes:",e);
+        showToast("Could not save notes (storage issue).");
       }
     }
+    window.saveNotes=saveNotes;
 
-    /*************** 3. Load meta from bible.html ***************/
-    let meta = null;
-    const metaJson = localStorage.getItem("deepDiveMeta");
-
-    try {
-      if (metaJson) meta = JSON.parse(metaJson);
-    } catch (e) {
-      console.error("Failed to parse deepDiveMeta:", e);
-    }
-
-    if (meta) {
-      document.getElementById("ddReference").innerText = meta.reference;
-      document.getElementById("ddVersionLabel").innerText =
-        `Version: ${meta.versionLabel}`;
-      document.getElementById("ddVersionHint").innerText =
-        `You’re studying this in: ${meta.versionLabel}. You can switch versions on the devotion page.`;
-      document.getElementById("ddText").innerText = meta.text;
-
+    if(meta){
+      ddRef.textContent=meta.reference;
+      ddVersionLabel.textContent=`Version: ${meta.versionLabel}`;
+      versionNoteEl.textContent=`You’re studying this in: ${meta.versionLabel}. You can switch versions on the devotion page.`;
+      ddText.textContent=meta.text;
       loadDeepStudy(meta);
-    } else {
-      document.getElementById("ddReference").innerText = "No verse selected";
-      document.getElementById("ddVersionLabel").innerText = "";
-      document.getElementById("ddVersionHint").innerText =
-        "Go back to the devotion page to pick a verse and version.";
-      document.getElementById("ddText").innerText =
-        "Please return to the devotion page and choose a verse.";
+      loadNotes(meta);
+    }else{
       showFallback();
     }
 
-    /*************** 4. Wire audio buttons ***************/
-    const listenBtn = document.getElementById("listenBtn");
-    const stopBtn = document.getElementById("stopBtn");
-    const audioSection = document.getElementById("audioSection");
+    // --- AUDIO: soften and simplify ---
+    const listenBtn=document.getElementById("listenBtn");
+    const stopBtn=document.getElementById("stopBtn");
+    let ttsVoice=null;
 
-    if ("speechSynthesis" in window) {
-      listenBtn.addEventListener("click", listenToStudy);
-      stopBtn.addEventListener("click", stopAudio);
-    } else {
-      audioSection.style.display = "none";
+    function chooseVoice(){
+      if(!("speechSynthesis" in window)) return;
+      const voices=window.speechSynthesis.getVoices();
+      if(!voices || !voices.length) return;
+      const preferred=voices.find(v =>
+        /female|woman|zira|samantha|google us english female/i.test(
+          ((v.name||"")+" "+(v.lang||""))
+        )
+      );
+      const english=voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en"));
+      ttsVoice=preferred || english || voices[0] || null;
     }
+    if("speechSynthesis" in window){
+      chooseVoice();
+      window.speechSynthesis.onvoiceschanged=chooseVoice;
+    }
+
+    function buildStudyText(){
+      const a=ddRef.innerText||"";
+      const b=ddText.innerText||"";
+      const c=devoBody.innerText||"";
+      return `${a}. ${b} ${c}`.trim();
+    }
+
+    listenBtn.addEventListener("click", () => {
+      if(!("speechSynthesis" in window)){
+        showToast("Audio not supported in this browser.");
+        return;
+      }
+      const text=buildStudyText();
+      if(!text){
+        showToast("Nothing to read yet.");
+        return;
+      }
+      const synth=window.speechSynthesis;
+      synth.cancel();
+
+      const utter=new SpeechSynthesisUtterance(text);
+      if(ttsVoice) utter.voice=ttsVoice;  // soft female / English if available
+      utter.rate=0.98;
+      utter.pitch=1.02;
+
+      try{
+        synth.speak(utter);
+      }catch(e){
+        console.warn("speak() failed",e);
+        showToast("Could not start audio.");
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if(!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+    });
   </script>
 </body>
 </html>
